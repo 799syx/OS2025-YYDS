@@ -1,0 +1,28 @@
+# 编译生成的文件
+test
+benchmark
+*.exe
+*.o
+*.obj
+
+# 构建目录
+build/
+*.a
+*.so
+*.dll
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.log
+
