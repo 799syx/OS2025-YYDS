@@ -203,6 +203,55 @@ extern uint64 sys_setgid(void);
 extern uint64 sys_login(void);
 extern uint64 sys_sudo(void);
 extern uint64 sys_consctl(void);
+extern uint64 sys_embassy_create_task(void);
+extern uint64 sys_embassy_create_task_named(void);
+extern uint64 sys_embassy_destroy_task(void);
+extern uint64 sys_embassy_schedule(void);
+extern uint64 sys_embassy_yield(void);
+extern uint64 sys_embassy_delay_ms(void);
+extern uint64 sys_embassy_wait_event(void);
+extern uint64 sys_embassy_trigger_event(void);
+extern uint64 sys_embassy_add_dependency(void);
+extern uint64 sys_embassy_set_task_group(void);
+extern uint64 sys_embassy_boost_priority(void);
+extern uint64 sys_embassy_get_task_stats(void);
+extern uint64 sys_embassy_get_global_stats(void);
+extern uint64 sys_embassy_print_stats(void);
+extern uint64 sys_qos_set(void);
+extern uint64 sys_qos_get(void);
+extern uint64 sys_qos_set_deadline(void);
+extern uint64 sys_qos_stats(void);
+extern uint64 sys_qos_print(void);
+extern uint64 sys_sysfs_read(void);
+extern uint64 sys_sysfs_list(void);
+extern uint64 sys_slab_stats(void);
+extern uint64 sys_hmdfs_register_device(void);
+extern uint64 sys_hmdfs_device_offline(void);
+extern uint64 sys_hmdfs_list_devices(void);
+extern uint64 sys_hmdfs_share(void);
+extern uint64 sys_hmdfs_unshare(void);
+extern uint64 sys_hmdfs_list_shared(void);
+extern uint64 sys_hmdfs_sync(void);
+extern uint64 sys_hmdfs_stats(void);
+extern uint64 sys_binder_register(void);
+extern uint64 sys_binder_lookup(void);
+extern uint64 sys_binder_release(void);
+extern uint64 sys_binder_list(void);
+extern uint64 sys_binder_stats(void);
+extern uint64 sys_cgroup_create(void);
+extern uint64 sys_cgroup_delete(void);
+extern uint64 sys_cgroup_attach(void);
+extern uint64 sys_cgroup_set_memory(void);
+extern uint64 sys_cgroup_set_cpu(void);
+extern uint64 sys_cgroup_list(void);
+extern uint64 sys_cgroups_stats(void);
+extern uint64 sys_ability_register(void);
+extern uint64 sys_ability_start(void);
+extern uint64 sys_ability_stop(void);
+extern uint64 sys_ability_destroy(void);
+extern uint64 sys_ability_back(void);
+extern uint64 sys_ability_list(void);
+extern uint64 sys_ability_stats(void);
 static uint64 (*syscalls[])(void) = {
     [SYS_fork] sys_fork,
     [SYS_exit] sys_exit,
@@ -299,6 +348,55 @@ static uint64 (*syscalls[])(void) = {
     [SYS_login] sys_login,
     [SYS_sudo] sys_sudo,
     [SYS_consctl] sys_consctl,
+    [SYS_embassy_create_task] sys_embassy_create_task,
+    [SYS_embassy_create_task_named] sys_embassy_create_task_named,
+    [SYS_embassy_destroy_task] sys_embassy_destroy_task,
+    [SYS_embassy_schedule] sys_embassy_schedule,
+    [SYS_embassy_yield] sys_embassy_yield,
+    [SYS_embassy_delay_ms] sys_embassy_delay_ms,
+    [SYS_embassy_wait_event] sys_embassy_wait_event,
+    [SYS_embassy_trigger_event] sys_embassy_trigger_event,
+    [SYS_embassy_add_dependency] sys_embassy_add_dependency,
+    [SYS_embassy_set_task_group] sys_embassy_set_task_group,
+    [SYS_embassy_boost_priority] sys_embassy_boost_priority,
+    [SYS_embassy_get_task_stats] sys_embassy_get_task_stats,
+    [SYS_embassy_get_global_stats] sys_embassy_get_global_stats,
+    [SYS_embassy_print_stats] sys_embassy_print_stats,
+    [SYS_qos_set] sys_qos_set,
+    [SYS_qos_get] sys_qos_get,
+    [SYS_qos_set_deadline] sys_qos_set_deadline,
+    [SYS_qos_stats] sys_qos_stats,
+    [SYS_qos_print] sys_qos_print,
+    [SYS_sysfs_read] sys_sysfs_read,
+    [SYS_sysfs_list] sys_sysfs_list,
+    [SYS_slab_stats] sys_slab_stats,
+    [SYS_hmdfs_register_device] sys_hmdfs_register_device,
+    [SYS_hmdfs_device_offline] sys_hmdfs_device_offline,
+    [SYS_hmdfs_list_devices] sys_hmdfs_list_devices,
+    [SYS_hmdfs_share] sys_hmdfs_share,
+    [SYS_hmdfs_unshare] sys_hmdfs_unshare,
+    [SYS_hmdfs_list_shared] sys_hmdfs_list_shared,
+    [SYS_hmdfs_sync] sys_hmdfs_sync,
+    [SYS_hmdfs_stats] sys_hmdfs_stats,
+    [SYS_binder_register] sys_binder_register,
+    [SYS_binder_lookup] sys_binder_lookup,
+    [SYS_binder_release] sys_binder_release,
+    [SYS_binder_list] sys_binder_list,
+    [SYS_binder_stats] sys_binder_stats,
+    [SYS_cgroup_create] sys_cgroup_create,
+    [SYS_cgroup_delete] sys_cgroup_delete,
+    [SYS_cgroup_attach] sys_cgroup_attach,
+    [SYS_cgroup_set_memory] sys_cgroup_set_memory,
+    [SYS_cgroup_set_cpu] sys_cgroup_set_cpu,
+    [SYS_cgroup_list] sys_cgroup_list,
+    [SYS_cgroups_stats] sys_cgroups_stats,
+    [SYS_ability_register] sys_ability_register,
+    [SYS_ability_start] sys_ability_start,
+    [SYS_ability_stop] sys_ability_stop,
+    [SYS_ability_destroy] sys_ability_destroy,
+    [SYS_ability_back] sys_ability_back,
+    [SYS_ability_list] sys_ability_list,
+    [SYS_ability_stats] sys_ability_stats,
 }; // 这些索引会从1开始，不是从0开始
 static char *syscall_names[] = {
     [SYS_fork] "fork",
@@ -396,6 +494,55 @@ static char *syscall_names[] = {
     [SYS_login] "sys_login",
     [SYS_sudo] "sys_sudo",
     [SYS_consctl] "sys_consctl",
+    [SYS_embassy_create_task] "sys_embassy_create_task",
+    [SYS_embassy_create_task_named] "sys_embassy_create_task_named",
+    [SYS_embassy_destroy_task] "sys_embassy_destroy_task",
+    [SYS_embassy_schedule] "sys_embassy_schedule",
+    [SYS_embassy_yield] "sys_embassy_yield",
+    [SYS_embassy_delay_ms] "sys_embassy_delay_ms",
+    [SYS_embassy_wait_event] "sys_embassy_wait_event",
+    [SYS_embassy_trigger_event] "sys_embassy_trigger_event",
+    [SYS_embassy_add_dependency] "sys_embassy_add_dependency",
+    [SYS_embassy_set_task_group] "sys_embassy_set_task_group",
+    [SYS_embassy_boost_priority] "sys_embassy_boost_priority",
+    [SYS_embassy_get_task_stats] "sys_embassy_get_task_stats",
+    [SYS_embassy_get_global_stats] "sys_embassy_get_global_stats",
+    [SYS_embassy_print_stats] "sys_embassy_print_stats",
+    [SYS_qos_set] "sys_qos_set",
+    [SYS_qos_get] "sys_qos_get",
+    [SYS_qos_set_deadline] "sys_qos_set_deadline",
+    [SYS_qos_stats] "sys_qos_stats",
+    [SYS_qos_print] "sys_qos_print",
+    [SYS_sysfs_read] "sys_sysfs_read",
+    [SYS_sysfs_list] "sys_sysfs_list",
+    [SYS_slab_stats] "sys_slab_stats",
+    [SYS_hmdfs_register_device] "sys_hmdfs_register_device",
+    [SYS_hmdfs_device_offline] "sys_hmdfs_device_offline",
+    [SYS_hmdfs_list_devices] "sys_hmdfs_list_devices",
+    [SYS_hmdfs_share] "sys_hmdfs_share",
+    [SYS_hmdfs_unshare] "sys_hmdfs_unshare",
+    [SYS_hmdfs_list_shared] "sys_hmdfs_list_shared",
+    [SYS_hmdfs_sync] "sys_hmdfs_sync",
+    [SYS_hmdfs_stats] "sys_hmdfs_stats",
+    [SYS_binder_register] "sys_binder_register",
+    [SYS_binder_lookup] "sys_binder_lookup",
+    [SYS_binder_release] "sys_binder_release",
+    [SYS_binder_list] "sys_binder_list",
+    [SYS_binder_stats] "sys_binder_stats",
+    [SYS_cgroup_create] "sys_cgroup_create",
+    [SYS_cgroup_delete] "sys_cgroup_delete",
+    [SYS_cgroup_attach] "sys_cgroup_attach",
+    [SYS_cgroup_set_memory] "sys_cgroup_set_memory",
+    [SYS_cgroup_set_cpu] "sys_cgroup_set_cpu",
+    [SYS_cgroup_list] "sys_cgroup_list",
+    [SYS_cgroups_stats] "sys_cgroups_stats",
+    [SYS_ability_register] "sys_ability_register",
+    [SYS_ability_start] "sys_ability_start",
+    [SYS_ability_stop] "sys_ability_stop",
+    [SYS_ability_destroy] "sys_ability_destroy",
+    [SYS_ability_back] "sys_ability_back",
+    [SYS_ability_list] "sys_ability_list",
+    [SYS_ability_stats] "sys_ability_stats",
 };
 void syscall(void) // 在usys.s中系统调用的参数放在a0与a1中，系统调用号放在a7
 {

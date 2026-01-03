@@ -33,7 +33,7 @@ void test_hostname(void)
   }
   
   // 设置新主机名
-  if (sethostname("my-bird-os", 10) == 0) {
+  if (sethostname("my-yyds-os", 10) == 0) {
     printf("设置主机名成功\n");
   }
   
@@ -43,7 +43,7 @@ void test_hostname(void)
   }
   
   // 恢复
-  sethostname("bird-os", 7);
+  sethostname("yyds-os", 7);
   
   printf("hostname 测试通过!\n");
 }

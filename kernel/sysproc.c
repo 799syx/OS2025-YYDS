@@ -562,7 +562,7 @@ uint64 sys_sigkill(void)
 // =============== 系统工具功能 ===============
 
 // 全局主机名
-static char hostname[64] = "bird-os";
+char hostname[64] = "yyds-os";
 
 // 全局环境变量表
 #define MAX_ENV_VARS 32

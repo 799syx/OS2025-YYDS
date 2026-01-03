@@ -94,3 +94,68 @@
 #define SYS_login 93        // 用户登录认证
 #define SYS_sudo 94         // 权限提升
 #define SYS_consctl 95      // 控制台模式控制
+
+// Embassy async scheduler system calls
+#define SYS_embassy_create_task 96
+#define SYS_embassy_create_task_named 97
+#define SYS_embassy_destroy_task 98
+#define SYS_embassy_schedule 99
+#define SYS_embassy_yield 100
+#define SYS_embassy_delay_ms 101
+#define SYS_embassy_wait_event 102
+#define SYS_embassy_trigger_event 103
+#define SYS_embassy_add_dependency 104
+#define SYS_embassy_set_task_group 105
+#define SYS_embassy_boost_priority 106
+#define SYS_embassy_get_task_stats 107
+#define SYS_embassy_get_global_stats 108
+#define SYS_embassy_print_stats 109
+
+// QoS (Quality of Service) system calls
+#define SYS_qos_set 110
+#define SYS_qos_get 111
+#define SYS_qos_set_deadline 112
+#define SYS_qos_stats 113
+#define SYS_qos_print 114
+
+// sysfs system calls
+#define SYS_sysfs_read 115
+#define SYS_sysfs_list 116
+
+// Slab allocator system calls
+#define SYS_slab_stats 117
+
+// HMDFS distributed file system calls
+#define SYS_hmdfs_register_device 118
+#define SYS_hmdfs_device_offline 119
+#define SYS_hmdfs_list_devices 120
+#define SYS_hmdfs_share 121
+#define SYS_hmdfs_unshare 122
+#define SYS_hmdfs_list_shared 123
+#define SYS_hmdfs_sync 124
+#define SYS_hmdfs_stats 125
+
+// Binder IPC (Android-style)
+#define SYS_binder_register 126
+#define SYS_binder_lookup 127
+#define SYS_binder_release 128
+#define SYS_binder_list 129
+#define SYS_binder_stats 130
+
+// cgroups (Linux-style)
+#define SYS_cgroup_create 131
+#define SYS_cgroup_delete 132
+#define SYS_cgroup_attach 133
+#define SYS_cgroup_set_memory 134
+#define SYS_cgroup_set_cpu 135
+#define SYS_cgroup_list 136
+#define SYS_cgroups_stats 137
+
+// Ability framework (HarmonyOS-style)
+#define SYS_ability_register 138
+#define SYS_ability_start 139
+#define SYS_ability_stop 140
+#define SYS_ability_destroy 141
+#define SYS_ability_back 142
+#define SYS_ability_list 143
+#define SYS_ability_stats 144

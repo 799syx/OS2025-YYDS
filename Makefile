@@ -35,7 +35,24 @@ OBJS = \
   $K/network/e1000.o\
   $K/network/pci.o\
   $K/sysnet.o\
-  $K/proc/sysmon.o
+  $K/proc/sysmon.o\
+  $K/proc/embassy.o\
+  $K/sys_embassy.o\
+  $K/proc/qos.o\
+  $K/sys_qos.o\
+  $K/mm/slab.o\
+  $K/mm/vma.o\
+  $K/fs/sysfs.o\
+  $K/sys_sysfs.o\
+  $K/sys_slab.o\
+  $K/fs/hmdfs.o\
+  $K/sys_hmdfs.o\
+  $K/proc/binder.o\
+  $K/sys_binder.o\
+  $K/proc/cgroups.o\
+  $K/sys_cgroups.o\
+  $K/proc/ability.o\
+  $K/sys_ability.o
 
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
@@ -187,7 +204,11 @@ UPROGS=\
 	$U/program/_export\
 	$U/program/_hn\
 	$U/test/_utiltest\
-	$U/test/_mlfqtest
+	$U/test/_mlfqtest\
+	$U/test/_embassy_test\
+	$U/test/_qostest\
+	$U/test/_hmdfstest\
+	$U/test/_osfeatures_test
 
 UEXTRA = $(wildcard kernel/include/*.h)
 fs.img: mkfs/mkfs README.md $(UEXTRA) $(UPROGS)
@@ -213,7 +234,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 3
 endif
-FWDPORT = $(shell expr `id -u` % 5000 + 25999)
+FWDPORT = 31999
 QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0

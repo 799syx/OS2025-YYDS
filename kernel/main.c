@@ -3,6 +3,15 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
+#include "proc/embassy.h"
+#include "proc/qos.h"
+#include "mm/slab.h"
+#include "mm/vma.h"
+#include "fs/sysfs.h"
+#include "fs/hmdfs.h"
+#include "proc/binder.h"
+#include "proc/cgroups.h"
+#include "proc/ability.h"
 
 volatile static int started = 0;
 
@@ -13,19 +22,17 @@ void main()
   {
     consoleinit();
     printfinit();
-    printf("\033[1;32m");
+    printf("\033[1;36m");
     printf("\n");
-    printf(" ______  _________ _______  ______          _______  _______ \n");
-    printf("(  ___ \\ \\__   __/(  ____ )(  __  \\        (  ___  )(  ____ \\\n");
-    printf("| (   ) )   ) (   | (    )|| (  \\  )       | (   ) || (    \\/\n");
-    printf("| (__/ /    | |   | (____)|| |   ) | _____ | |   | || (_____ \n");
-    printf("|  __ (     | |   |     __)| |   | |(_____)| |   | |(_____  )\n");
-    printf("| (  \\ \\    | |   | (\\ (   | |   ) |       | |   | |      ) |\n");
-    printf("| )___) )___) (___| ) \\ \\__| (__/  )       | (___) |/\\____) |\n");
-    printf("|/ \\___/ \\_______/|/   \\__/(______/        (_______)\\_______)\n");
-    printf("\n");
-    printf("Wellcome to bird-os!\n");
-    printf("\n");
+    printf("██╗   ██╗██╗   ██╗██████╗ ███████╗       ██████╗ ███████╗\n");
+    printf("╚██╗ ██╔╝╚██╗ ██╔╝██╔══██╗██╔════╝      ██╔═══██╗██╔════╝\n");
+    printf(" ╚████╔╝  ╚████╔╝ ██║  ██║███████╗█████╗██║   ██║███████╗\n");
+    printf("  ╚██╔╝    ╚██╔╝  ██║  ██║╚════██║╚════╝██║   ██║╚════██║\n");
+    printf("   ██║      ██║   ██████╔╝███████║      ╚██████╔╝███████║\n");
+    printf("   ╚═╝      ╚═╝   ╚═════╝ ╚══════╝       ╚═════╝ ╚══════╝\n");
+    printf("\033[1;33m");
+    printf("         Welcome to YYDS-OS v1.0 - Your Awesome OS!\n");
+    printf("\033[0m\n");
     kinit();            // 初始化内存，将所有可用内存切碎
     kvminit();          // 创建内核页表，完成内核虚拟地址映射
     kvminithart();      // 把内核页表物理地址放入当前CPU核的页表基地寄存器(satp)中
@@ -43,6 +50,15 @@ void main()
     initsem();          // 信号量数组初始化
     sharememinit();
     mqinit();
+    embassy_init();    // Initialize Embassy async scheduler
+    slab_init();       // Initialize Slab allocator
+    vma_init();        // Initialize VMA manager
+    qos_init();        // Initialize QoS scheduler
+    sysfs_init();      // Initialize sysfs
+    hmdfs_init();      // Initialize HMDFS distributed file system
+    binder_init();     // Initialize Binder IPC (Android-style)
+    cgroups_init();    // Initialize cgroups (Linux-style)
+    ability_init();    // Initialize Ability framework (HarmonyOS-style)
     printf("\033[0m");
     userinit();           // first user process
     __sync_synchronize(); // 防止编译器优化，确保后续的任何操作都是初始化之后进行

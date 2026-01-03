@@ -250,7 +250,7 @@ void test_banner(void)
   banner("OS");
   printf("\n");
   
-  banner("BIRD");
+  banner("YYDS");
   
   printf("\nbanner 测试通过!\n");
 }

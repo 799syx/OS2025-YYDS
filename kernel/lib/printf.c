@@ -132,3 +132,97 @@ printfinit(void)
   initlock(&pr.lock, "pr");
   pr.locking = 1;
 }
+
+// snprintf - 格式化输出到缓冲区
+static int
+sprintint(char *buf, int size, int pos, int xx, int base, int sign)
+{
+  char tmp[16];
+  int i = 0;
+  uint x;
+
+  if(sign && (sign = xx < 0))
+    x = -xx;
+  else
+    x = xx;
+
+  do {
+    tmp[i++] = digits[x % base];
+  } while((x /= base) != 0);
+
+  if(sign)
+    tmp[i++] = '-';
+
+  while(--i >= 0 && pos < size - 1)
+    buf[pos++] = tmp[i];
+  
+  return pos;
+}
+
+int
+snprintf(char *buf, int size, const char *fmt, ...)
+{
+  va_list ap;
+  int i, c, pos = 0;
+  char *s;
+
+  if(buf == 0 || size <= 0)
+    return 0;
+
+  va_start(ap, fmt);
+  for(i = 0; (c = fmt[i] & 0xff) != 0 && pos < size - 1; i++){
+    if(c != '%'){
+      buf[pos++] = c;
+      continue;
+    }
+    c = fmt[++i] & 0xff;
+    if(c == 0)
+      break;
+    switch(c){
+    case 'd':
+      pos = sprintint(buf, size, pos, va_arg(ap, int), 10, 1);
+      break;
+    case 'x':
+      pos = sprintint(buf, size, pos, va_arg(ap, int), 16, 0);
+      break;
+    case 's':
+      if((s = va_arg(ap, char*)) == 0)
+        s = "(null)";
+      while(*s && pos < size - 1)
+        buf[pos++] = *s++;
+      break;
+    case '%':
+      buf[pos++] = '%';
+      break;
+    case '0':
+      // 处理 %02d 等格式
+      {
+        int width = 0;
+        while(fmt[i+1] >= '0' && fmt[i+1] <= '9') {
+          width = width * 10 + (fmt[++i] - '0');
+        }
+        c = fmt[++i] & 0xff;
+        if(c == 'd') {
+          int val = va_arg(ap, int);
+          char tmp[16];
+          int len = 0, neg = 0;
+          uint x;
+          if(val < 0) { neg = 1; x = -val; } else { x = val; }
+          do { tmp[len++] = digits[x % 10]; } while((x /= 10) != 0);
+          if(neg) tmp[len++] = '-';
+          while(len < width && pos < size - 1) { buf[pos++] = '0'; width--; }
+          while(--len >= 0 && pos < size - 1) buf[pos++] = tmp[len];
+        }
+      }
+      break;
+    default:
+      buf[pos++] = '%';
+      if(pos < size - 1)
+        buf[pos++] = c;
+      break;
+    }
+  }
+  va_end(ap);
+  buf[pos] = '\0';
+  return pos;
+}

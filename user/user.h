@@ -192,3 +192,83 @@ int statistics(void *buf, int sz);
 int thread_join(void);
 int thread_create(void(*start_routine)(void*),void*arg);
 
+// Embassy async scheduler
+int embassy_create_task(void (*async_func)(void *), void *arg, int priority);
+int embassy_create_task_named(void (*async_func)(void *), void *arg, int priority, const char *name);
+void embassy_destroy_task(int task_id);
+void embassy_schedule(void);
+void embassy_yield(void);
+void embassy_delay_ms(int milliseconds);
+void embassy_wait_event(int event_id);
+void embassy_trigger_event(int event_id);
+int embassy_add_dependency(int task_id, int dep_task_id);
+int embassy_set_task_group(int task_id, int group_id);
+void embassy_boost_priority(int task_id);
+void embassy_get_task_stats(int task_id, void *stats);
+void embassy_get_global_stats(void *stats);
+void embassy_print_stats(void);
+
+// QoS (Quality of Service) scheduler
+#define QOS_USER_INTERACTIVE  0
+#define QOS_DEADLINE_REQUEST  1
+#define QOS_USER_INITIATED    2
+#define QOS_DEFAULT           3
+#define QOS_UTILITY           4
+#define QOS_BACKGROUND        5
+int qos_set(int level);
+int qos_get(void);
+int qos_set_deadline(uint64 deadline);
+int qos_stats(uint64 *total, uint64 *boosts, uint64 *misses, uint64 *switches);
+void qos_print(void);
+
+// sysfs - kernel info as files
+int sysfs_read(char *path, char *buf, int len);
+int sysfs_list(char *path, char *buf, int len);
+
+// Slab allocator stats
+int slab_stats(void);
+
+// HMDFS distributed file system
+#define DEV_TYPE_LOCAL   0
+#define DEV_TYPE_PHONE   1
+#define DEV_TYPE_TABLET  2
+#define DEV_TYPE_PC      3
+#define DEV_TYPE_WATCH   4
+#define DEV_TYPE_TV      5
+int hmdfs_register_device(char *name, char *uuid, int type);
+int hmdfs_device_offline(int device_id);
+int hmdfs_list_devices(char *buf, int len);
+int hmdfs_share(char *path);
+int hmdfs_unshare(char *path);
+int hmdfs_list_shared(char *buf, int len);
+int hmdfs_sync(void);
+void hmdfs_stats(void);
+
+// Binder IPC (Android-style)
+int binder_register(char *name, uint64 ptr);
+int binder_lookup(char *name);
+int binder_release(int handle);
+int binder_list(char *buf, int len);
+void binder_stats(void);
+
+// cgroups (Linux-style)
+int cgroup_create(char *name, int parent_id);
+int cgroup_delete(int cgroup_id);
+int cgroup_attach(int cgroup_id, int pid);
+int cgroup_set_memory(int cgroup_id, uint64 limit);
+int cgroup_set_cpu(int cgroup_id, int shares);
+int cgroup_list(char *buf, int len);
+void cgroups_stats(void);
+
+// Ability framework (HarmonyOS-style)
+#define ABILITY_PAGE     1
+#define ABILITY_SERVICE  2
+#define ABILITY_DATA     3
+int ability_register(char *bundle, char *name, int type);
+int ability_start(int ability_id);
+int ability_stop(int ability_id);
+int ability_destroy(int ability_id);
+int ability_back(void);
+int ability_list(char *buf, int len);
+void ability_stats(void);
+

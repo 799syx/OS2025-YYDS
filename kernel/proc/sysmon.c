@@ -25,7 +25,6 @@ static int load_sample_idx = 0;
 static uint64 last_sample_time = 0;
 
 // Previous tick counts for CPU usage calculation
-static uint64 prev_idle_ticks = 0;
 static uint64 prev_total_ticks = 0;
 
 // Initialize system monitor
