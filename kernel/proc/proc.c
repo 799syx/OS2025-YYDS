@@ -543,8 +543,8 @@ int wait(uint64 addr)
         {
           // Found one.
           pid = np->pid;
-          releasemq2(p->mqmask);
-          p->mqmask = 0;
+          releasemq2(np->mqmask);
+          np->mqmask = 0;
           if (addr != 0 && copyout(p->pagetable, addr, (char *)&np->xstate,
                                    sizeof(np->xstate)) < 0)
           {

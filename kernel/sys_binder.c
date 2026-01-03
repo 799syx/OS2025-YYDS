@@ -66,10 +66,10 @@ sys_binder_list(void)
     if (argint(1, &len) < 0)
         return -1;
     
-    if (len <= 0 || len > 4096)
+    if (len <= 0 || len > 512)
         return -1;
     
-    char buf[4096];
+    char buf[512];
     int n = binder_list_services(buf, len);
     
     struct proc *p = myproc();

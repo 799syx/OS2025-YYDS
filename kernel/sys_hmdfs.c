@@ -54,10 +54,10 @@ sys_hmdfs_list_devices(void)
     if (argint(1, &len) < 0)
         return -1;
     
-    if (len <= 0 || len > 4096)
+    if (len <= 0 || len > 512)
         return -1;
     
-    char buf[4096];
+    char buf[512];
     int n = hmdfs_list_devices(buf, len);
     
     struct proc *p = myproc();
@@ -109,10 +109,10 @@ sys_hmdfs_list_shared(void)
     if (argint(1, &len) < 0)
         return -1;
     
-    if (len <= 0 || len > 4096)
+    if (len <= 0 || len > 512)
         return -1;
     
-    char buf[4096];
+    char buf[512];
     int n = hmdfs_list_shared(buf, len);
     
     struct proc *p = myproc();

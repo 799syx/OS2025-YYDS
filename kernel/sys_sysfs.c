@@ -33,8 +33,9 @@ sys_sysfs_read(void)
     if (fetchstr(path_addr, path, sizeof(path)) < 0)
         return -1;
     
-    // 读取 sysfs 内容
-    char buf[4096];
+    // 读取 sysfs 内容 (使用较小的缓冲区避免栈溢出)
+    char buf[512];
+    if (len > 512) len = 512;
     int n = sysfs_read(path, buf, len);
     if (n < 0)
         return -1;
@@ -70,8 +71,9 @@ sys_sysfs_list(void)
     if (fetchstr(path_addr, path, sizeof(path)) < 0)
         return -1;
     
-    // 列出目录
-    char buf[4096];
+    // 列出目录 (使用较小的缓冲区避免栈溢出)
+    char buf[512];
+    if (len > 512) len = 512;
     int n = sysfs_list(path, buf, len);
     if (n < 0)
         return -1;
