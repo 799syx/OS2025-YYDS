@@ -257,3 +257,138 @@ void            sockclose(struct sock *);
 int             sockread(struct sock *, uint64, int);
 int             sockwrite(struct sock *, uint64, int);
 void            sockrecvudp(struct mbuf*, uint32, uint16, uint16);
+
+// proc.c - 实时调度和Deadline调度
+int             sched_setscheduler(int pid, int policy, int priority);
+int             sched_setdeadline(int pid, uint64 runtime, uint64 deadline, uint64 period);
+void            sched_get_stats(uint64 *rt_sched, uint64 *dl_sched, uint64 *dl_miss);
+
+// checkpoint.c - 进程快照
+void            checkpoint_init(void);
+uint64          checkpoint_create(void);
+uint64          checkpoint_create_pid(int pid);
+int             checkpoint_restore(uint64 checkpoint_id);
+int             checkpoint_delete(uint64 checkpoint_id);
+int             checkpoint_delete_all(int pid);
+int             checkpoint_list(char *buf, int len);
+int             checkpoint_info(uint64 checkpoint_id, int *pid, uint64 *sz, int *num_pages);
+int             checkpoint_exists(int pid);
+void            checkpoint_print_stats(void);
+void            checkpoint_get_stats(uint64 *created, uint64 *restored, uint64 *deleted);
+
+// versioning.c - 文件版本历史
+void            versioning_init(void);
+int             version_enable(char *path);
+int             version_disable(char *path);
+int             version_create(char *path, char *comment);
+int             version_restore(char *path, int version_num);
+int             version_list(char *path, char *buf, int len);
+int             version_info(char *path, int version_num, uint64 *timestamp, uint64 *size, char *comment);
+int             version_delete(char *path, int version_num);
+int             version_cleanup(char *path, int keep_count);
+int             version_diff(char *path, int ver1, int ver2, char *buf, int len);
+int             version_current(char *path);
+int             version_set_config(char *path, int max_versions, int auto_version);
+void            versioning_print_stats(void);
+void            versioning_get_stats(uint64 *versions, uint64 *restores, uint64 *cleanups);
+int             versioning_list_files(char *buf, int len);
+
+// cgroups.c - IO和网络带宽限制
+int             cgroup_set_io_limit(int cgroup_id, uint64 read_bps, uint64 write_bps, int weight);
+int             cgroup_set_io_iops(int cgroup_id, uint64 read_iops, uint64 write_iops);
+int             cgroup_check_io_read(int pid, uint64 bytes);
+int             cgroup_check_io_write(int pid, uint64 bytes);
+int             cgroup_set_net_limit(int cgroup_id, uint64 tx_bps, uint64 rx_bps, int priority);
+int             cgroup_set_net_pps(int cgroup_id, uint64 tx_pps, uint64 rx_pps);
+int             cgroup_check_net_tx(int pid, uint64 bytes);
+int             cgroup_check_net_rx(int pid, uint64 bytes);
+void            cgroup_get_io_stats(int cgroup_id, uint64 *read_bytes, uint64 *write_bytes, uint64 *read_ops, uint64 *write_ops);
+void            cgroup_get_net_stats(int cgroup_id, uint64 *tx_bytes, uint64 *rx_bytes, uint64 *tx_packets, uint64 *rx_packets);
+
+// ability.c - Ability间通信和生命周期管理
+void            ability_mq_init(void);
+int             ability_send_message(int src_id, int dst_id, int type, char *data, int len);
+int             ability_recv_message(int ability_id, char *buf, int buflen, int *src_id, int *type);
+int             ability_call(int src_id, int dst_id, char *request, int req_len, char *response, int resp_len);
+int             ability_reply(int src_id, int dst_id, int request_id, char *data, int len);
+int             ability_set_state(int ability_id, int new_state);
+int             ability_get_state(int ability_id);
+int             ability_connect(int src_id, int dst_id);
+int             ability_disconnect(int src_id, int dst_id);
+void            ability_get_ipc_stats(uint64 *total_msgs, uint64 *total_reqs, uint64 *total_resps);
+
+// hmdfs.c - 跨设备文件同步增强
+void            hmdfs_sync_queue_init(void);
+int             hmdfs_add_sync_event(int event_type, char *path, int device_id);
+int             hmdfs_process_sync_queue(void);
+int             hmdfs_sync_file_to_device(char *path, int device_id);
+int             hmdfs_fetch_file(char *path, int device_id);
+int             hmdfs_full_sync(void);
+int             hmdfs_incremental_sync(void);
+int             hmdfs_set_sync_priority(char *path, int priority);
+int             hmdfs_get_file_status(char *path, int *sync_state, int *replicas, uint64 *version);
+int             hmdfs_transfer_file(int src_device, int dst_device, char *path);
+int             hmdfs_list_device_files(int device_id, char *buf, int len);
+
+// capability.c - 进程权能系统
+void            capability_init(void);
+int             cap_check(int pid, int cap);
+int             cap_capable(int cap);
+int             cap_set(int pid, int cap_type, uint32 caps);
+int             cap_get(int pid, int cap_type, uint32 *caps);
+int             cap_raise(int pid, int cap);
+int             cap_drop(int pid, int cap);
+void            cap_fork_init(struct proc *child, struct proc *parent);
+void            cap_exec_init(struct proc *p);
+const char*     cap_name(int cap);
+void            cap_print_stats(void);
+int             cap_list_process(int pid, char *buf, int len);
+
+// cpuaffinity.c - CPU亲和性调度
+void            cpuaffinity_init(void);
+int             sched_setaffinity(int pid, uint32 mask);
+int             sched_getaffinity(int pid, uint32 *mask);
+int             cpu_allowed(struct proc *p, int cpu);
+int             find_least_loaded_cpu(uint32 mask);
+void            load_balance(void);
+void            cpu_stats_tick(int cpu, int is_idle);
+void            cpu_stats_switch(int cpu, int new_pid);
+void            cpu_stats_runqueue(int cpu, int len);
+int             lb_set_policy(int policy);
+int             lb_set_interval(int interval);
+void            cpuaffinity_print_stats(void);
+int             cpuaffinity_get_info(char *buf, int len);
+
+// futex.c - 快速用户态互斥锁
+void            futex_init(void);
+int             futex_wait(uint64 uaddr, uint32 val, uint64 timeout);
+int             futex_wake(uint64 uaddr, int nr_wake);
+int             futex_wake_bitset(uint64 uaddr, int nr_wake, uint32 bitset);
+int             futex_requeue(uint64 uaddr, uint64 uaddr2, int nr_wake, int nr_requeue);
+int             sys_futex(uint64 uaddr, int op, uint32 val, uint64 timeout, uint64 uaddr2, uint32 val3);
+void            futex_print_stats(void);
+int             futex_get_stats(uint64 *waits, uint64 *wakes, uint64 *timeouts);
+
+// freezer.c - 进程冻结/解冻
+void            freezer_init(void);
+int             freeze_process(int pid, int reason);
+int             thaw_process(int pid);
+int             freeze_cgroup(int cgroup_id);
+int             thaw_cgroup(int cgroup_id);
+int             freeze_set_priority(int pid, int prio);
+int             auto_freeze_background(void);
+int             is_frozen(int pid);
+int             frozen_count(void);
+int             freezer_set_auto(int enabled);
+int             freezer_set_timeout(int timeout);
+void            freezer_print_stats(void);
+int             freezer_list(char *buf, int len);
+
+// kprofiler.c - 内核性能统计
+void            kprofiler_init(void);
+void            perf_record(int event, int pid, uint64 data);
+void            perf_sched_switch(int from_pid, int to_pid);
+void            perf_syscall(int pid, int syscall_num);
+int             kprofiler_enable(int enable);
+void            kprofiler_print_stats(void);
+int             kprofiler_get_stats(char *buf, int len);

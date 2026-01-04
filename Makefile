@@ -52,7 +52,14 @@ OBJS = \
   $K/proc/cgroups.o\
   $K/sys_cgroups.o\
   $K/proc/ability.o\
-  $K/sys_ability.o
+  $K/sys_ability.o\
+  $K/proc/checkpoint.o\
+  $K/fs/versioning.o\
+  $K/proc/capability.o\
+  $K/proc/cpuaffinity.o\
+  $K/proc/futex.o\
+  $K/proc/freezer.o\
+  $K/proc/kprofiler.o
 
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-

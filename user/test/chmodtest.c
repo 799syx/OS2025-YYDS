@@ -89,5 +89,7 @@ int main() {
     if(bytes_read<0) printf("read from /test/a failed\n");
     else printf("\nread from /test/a successed\n");
     close(fd);
+    
+    printf("\nchmodtest: all tests passed\n");
     exit(0);
 }

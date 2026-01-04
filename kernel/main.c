@@ -31,7 +31,7 @@ void main()
     printf("   ██║      ██║   ██████╔╝███████║      ╚██████╔╝███████║\n");
     printf("   ╚═╝      ╚═╝   ╚═════╝ ╚══════╝       ╚═════╝ ╚══════╝\n");
     printf("\033[1;33m");
-    printf("         Welcome to YYDS-OS v1.0 - Your Awesome OS!\n");
+    printf("         Welcome to YYDS-OS v2.0 - Your Awesome OS!\n");
     printf("\033[0m\n");
     kinit();            // 初始化内存，将所有可用内存切碎
     kvminit();          // 创建内核页表，完成内核虚拟地址映射

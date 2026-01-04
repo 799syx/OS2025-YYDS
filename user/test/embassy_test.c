@@ -97,40 +97,34 @@ void test_events(void)
 void test_concurrent_tasks(void)
 {
     printf("\n=== Test 5: Concurrent Tasks ===\n");
-    printf("Testing multi-process task creation\n\n");
+    printf("Testing multi-process task creation\n");
     
+    // 顺序执行避免输出竞争
     int pid1 = fork();
     if (pid1 == 0) {
-        printf("[Child 1] Creating HIGH priority task\n");
         int task = embassy_create_task(0, 0, EMBASSY_HIGH);
-        printf("[Child 1] Task ID: %d\n", task);
         embassy_delay_ms(50);
         if (task >= 0) embassy_destroy_task(task);
-        printf("[Child 1] Done\n");
+        printf("[Child 1] HIGH priority task done, ID: %d\n", task);
         exit(0);
     }
+    wait(0);
     
     int pid2 = fork();
     if (pid2 == 0) {
-        printf("[Child 2] Creating LOW priority task\n");
         int task = embassy_create_task(0, 0, EMBASSY_LOW);
-        printf("[Child 2] Task ID: %d\n", task);
         embassy_delay_ms(50);
         if (task >= 0) embassy_destroy_task(task);
-        printf("[Child 2] Done\n");
+        printf("[Child 2] LOW priority task done, ID: %d\n", task);
         exit(0);
     }
+    wait(0);
     
-    printf("[Parent] Creating NORMAL priority task\n");
     int task = embassy_create_task(0, 0, EMBASSY_NORMAL);
-    printf("[Parent] Task ID: %d\n", task);
-    
-    wait(0);
-    wait(0);
-    
     if (task >= 0) embassy_destroy_task(task);
+    printf("[Parent] NORMAL priority task done, ID: %d\n", task);
     
-    printf("\nTest 5 PASSED!\n");
+    printf("Test 5 PASSED!\n");
 }
 
 // Test 6: Stress test

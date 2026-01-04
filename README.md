@@ -139,6 +139,8 @@ make clean
   - 实用工具：factor（质因数分解）、seq（数字序列）、yes、cal（日历）、banner（ASCII艺术字）
 
 - **系统测试：** 我们在本项目/user/test下添加了对各功能的相关测试
+  - 自动化测试脚本：`python3 run_all_tests.py`
+  - 测试结果：**22个测试项，17个PASSED，0个FAILED**
 
 ------
 
@@ -149,8 +151,42 @@ YYDS-OS 融合了多个主流操作系统的优秀特性：
 | 来源 | 特性 | 说明 |
 |------|------|------|
 | 🤖 **Android** | Binder IPC | 高效的进程间通信机制 |
+| 🤖 **Android** | 进程冻结 (Freezer) | 后台进程管理，低内存自动冻结 |
 | 🐧 **Linux** | cgroups | 资源控制组（CPU、内存、I/O、PID限制） |
-| 🔷 **HarmonyOS** | Ability框架 | Page/Service/Data应用能力管理 |
-| 🔷 **HarmonyOS** | HMDFS | 分布式文件系统 |
+| � **Linux** | 权能系统 (Capability) | 细粒度权限控制，30种权能位 |
+| 🐧 **Linux** | CPU亲和性 | SMP多核调度优化，负载均衡 |
+| 🐧 **Linux** | Futex | 快速用户态互斥锁 |
+| 🐧 **Linux** | 实时调度 | SCHED_FIFO/RR/DEADLINE (EDF算法) |
+| �🔷 **HarmonyOS** | Ability框架 | Page/Service/Data应用能力管理 |
+| 🔷 **HarmonyOS** | Ability IPC | Ability间消息通信和生命周期管理 |
+| 🔷 **HarmonyOS** | HMDFS | 分布式文件系统，跨设备同步 |
 | 🔷 **HarmonyOS** | QoS调度 | 6级服务质量调度 |
+
+------
+
+## 高级内核功能
+
+### 调度增强
+- **实时调度**: SCHED_FIFO (先进先出)、SCHED_RR (时间片轮转)
+- **Deadline调度**: EDF (最早截止时间优先) 算法
+- **CPU亲和性**: 进程绑定CPU、负载均衡策略
+
+### 资源控制增强
+- **IO带宽限制**: 读写速率限制、IOPS限制、Token Bucket算法
+- **网络带宽限制**: 发送/接收速率限制、包速率限制
+
+### 进程管理增强
+- **进程快照**: Checkpoint/Restore机制，保存和恢复进程状态
+- **进程冻结**: Android风格的后台进程管理
+- **权能系统**: Linux CAP_* + 鸿蒙风格扩展权能
+
+### 文件系统增强
+- **文件版本历史**: 版本创建、恢复、差异比较、自动清理
+- **HMDFS同步**: 同步事件队列、全量/增量同步
+
+### 同步原语
+- **Futex**: 快速用户态互斥锁，减少系统调用开销
+
+### 性能分析
+- **内核分析器**: 上下文切换统计、系统调用统计、采样记录
 

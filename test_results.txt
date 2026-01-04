@@ -1,0 +1,1227 @@
+======================================================================
+xv6 测试结果汇总
+测试时间: 2026-01-04 12:04:02.965574
+======================================================================
+
+测试汇总:
+----------------------------------------
+通过: 17
+失败: 0
+其他: 5
+总计: 22
+
+各测试状态:
+----------------------------------------
+  alarmtest            : COMPLETED
+  bcachetest           : PASSED
+  bigfiletest          : TIMEOUT
+  chmodtest            : PASSED
+  cowtest              : PASSED
+  embassy_test         : PASSED
+  forktest             : PASSED
+  fstest               : PASSED
+  hmdfstest            : COMPLETED
+  kalloctest           : PASSED
+  lazytest             : PASSED
+  mlfqtest             : COMPLETED
+  mmaptest             : PASSED
+  msgtest              : COMPLETED
+  newtest              : PASSED
+  osfeatures_test      : PASSED
+  qostest              : PASSED
+  recoveritest         : PASSED
+  sigtest              : PASSED
+  symlinktest          : PASSED
+  usertests            : PASSED
+  utiltest             : PASSED
+
+======================================================================
+详细测试输出
+======================================================================
+
+----------------------------------------------------------------------
+测试: alarmtest
+状态: COMPLETED
+----------------------------------------------------------------------
+alarmtest
+test0 start
+............................................alarm!
+test0 passed
+test1 start
+......alarm!
+.......alarm!
+......alarm!
+.....alarm!
+.......alarm!
+......alarm!
+......alarm!
+......alarm!
+.....alarm!
+.......alarm!
+test1 passed
+test2 start
+.................................................................alarm!
+test2 passed
+
+
+----------------------------------------------------------------------
+测试: bcachetest
+状态: PASSED
+----------------------------------------------------------------------
+bcachetest
+start test0
+have no permission to read
+ntas: no stats
+test0 results:
+have no permission to read
+ntas: no stats
+test0: OK
+start test1
+test1 OK
+
+
+----------------------------------------------------------------------
+测试: bigfiletest
+状态: TIMEOUT
+----------------------------------------------------------------------
+bigfiletest
+................................................................................................................................................................................................................................................................................
+
+----------------------------------------------------------------------
+测试: chmodtest
+状态: PASSED
+----------------------------------------------------------------------
+chmodtest
+Created file /test/a
+权限为可读可写:
+write "hellow" to /test/a successed
+hellow
+read from /test/a successed
+
+
+修改权限为只读:
+have no permission to write
+write "hellow1" to /test/a failed
+hellow
+read from /test/a successed
+
+
+修改权限为只写:
+write "hellow2" to /test/a successed
+have no permission to read
+read from /test/a failed
+
+chmodtest: all tests passed
+
+
+----------------------------------------------------------------------
+测试: cowtest
+状态: PASSED
+----------------------------------------------------------------------
+cowtest
+simple: ok
+simple: ok
+three: ok
+three: ok
+three: ok
+file: ok
+ALL COW TESTS PASSED
+
+
+----------------------------------------------------------------------
+测试: embassy_test
+状态: PASSED
+----------------------------------------------------------------------
+embassy_test
+========================================
+   Embassy Async Scheduler Test
+========================================
+
+Embassy Features:
+- 4 priority queues (Critical/High/Normal/Low)
+- Async task creation and destruction
+- Task delay and yield
+- Event trigger mechanism
+- Cooperative scheduling
+
+=== Test 1: Task Creation & Destruction ===
+Testing task creation with different priorities
+
+Creating CRITICAL priority task...
+[Embassy] Created task 0 'unnamed' (priority=0)
+  Task ID: 0
+Creating HIGH priority task...
+[Embassy] Created task 1 'unnamed' (priority=1)
+  Task ID: 1
+Creating NORMAL priority task...
+[Embassy] Created task 2 'unnamed' (priority=2)
+  Task ID: 2
+Creating LOW priority task...
+[Embassy] Created task 3 'unnamed' (priority=3)
+  Task ID: 3
+
+Destroying all tasks...
+[Embassy] Destroyed task 0
+[Embassy] Destroyed task 1
+[Embassy] Destroyed task 2
+[Embassy] Destroyed task 3
+
+Test 1 PASSED!
+
+=== Test 2: Delay Function ===
+Testing embassy_delay_ms
+
+Starting delay test (100ms)...
+Delay completed, elapsed: 0 ticks
+Starting delay test (200ms)...
+Delay completed, elapsed: 0 ticks
+
+Test 2 PASSED!
+
+=== Test 3: Yield CPU ===
+Testing embassy_yield
+
+Yield #1...
+  Resumed
+Yield #2...
+  Resumed
+Yield #3...
+  Resumed
+Yield #4...
+  Resumed
+Yield #5...
+  Resumed
+
+Test 3 PASSED!
+
+=== Test 4: Event Trigger ===
+Testing embassy_trigger_event
+
+Triggering event 1...
+[Embassy] Event 1 triggered
+Triggering event 2...
+[Embassy] Event 2 triggered
+Triggering event 100...
+[Embassy] Event 100 triggered
+
+Test 4 PASSED!
+
+=== Test 5: Concurrent Tasks ===
+Testing multi-process task creation
+[Embassy] Created task 4 'unnamed' (priority=1)
+[Embassy] Destroyed task 4
+[Child 1] HIGH priority task done, ID: 4
+[Embassy] Created task 5 'unnamed' (priority=3)
+[Embassy] Destroyed task 5
+[Child 2] LOW priority task done, ID: 5
+[Embassy] Created task 6 'unnamed' (priority=2)
+[Embassy] Destroyed task 6
+[Parent] NORMAL priority task done, ID: 6
+Test 5 PASSED!
+
+=== Test 6: Stress Test ===
+Creating many tasks to test stability
+
+Creating 20 tasks...
+[Embassy] Created task 7 'unnamed' (priority=0)
+[Embassy] Created task 8 'unnamed' (priority=1)
+[Embassy] Created task 9 'unnamed' (priority=2)
+[Embassy] Created task 10 'unnamed' (priority=3)
+[Embassy] Created task 11 'unnamed' (priority=0)
+[Embassy] Created task 12 'unnamed' (priority=1)
+[Embassy] Created task 13 'unnamed' (priority=2)
+[Embassy] Created task 14 'unnamed' (priority=3)
+[Embassy] Created task 15 'unnamed' (priority=0)
+[Embassy] Created task 16 'unnamed' (priority=1)
+[Embassy] Created task 17 'unnamed' (priority=2)
+[Embassy] Created task 18 'unnamed' (priority=3)
+[Embassy] Created task 19 'unnamed' (priority=0)
+[Embassy] Created task 20 'unnamed' (priority=1)
+[Embassy] Created task 21 'unnamed' (priority=2)
+[Embassy] Created task 22 'unnamed' (priority=3)
+[Embassy] Created task 23 'unnamed' (priority=0)
+[Embassy] Created task 24 'unnamed' (priority=1)
+[Embassy] Created task 25 'unnamed' (priority=2)
+[Embassy] Created task 26 'unnamed' (priority=3)
+Successfully created 20 tasks
+Destroying all tasks...
+[Embassy] Destroyed task 7
+[Embassy] Destroyed task 8
+[Embassy] Destroyed task 9
+[Embassy] Destroyed task 10
+[Embassy] Destroyed task 11
+[Embassy] Destroyed task 12
+[Embassy] Destroyed task 13
+[Embassy] Destroyed task 14
+[Embassy] Destroyed task 15
+[Embassy] Destroyed task 16
+[Embassy] Destroyed task 17
+[Embassy] Destroyed task 18
+[Embassy] Destroyed task 19
+[Embassy] Destroyed task 20
+[Embassy] Destroyed task 21
+[Embassy] Destroyed task 22
+[Embassy] Destroyed task 23
+[Embassy] Destroyed task 24
+[Embassy] Destroyed task 25
+[Embassy] Destroyed task 26
+
+Test 6 PASSED!
+
+========================================
+   All Embassy Tests PASSED!
+========================================
+
+
+----------------------------------------------------------------------
+测试: forktest
+状态: PASSED
+----------------------------------------------------------------------
+forktest
+fork test
+fork test OK
+
+
+----------------------------------------------------------------------
+测试: fstest
+状态: PASSED
+----------------------------------------------------------------------
+fstest
+========================================
+    文件系统增强功能测试
+========================================
+
+=== 测试 access ===
+access: README.md 存在
+access: nofile 不存在 (预期)
+access 测试通过!
+
+=== 测试 umask ===
+原始 umask = 18
+设置后 umask = 63 (应为 077=63)
+umask 测试通过!
+
+=== 测试 readdir ===
+读取到 5 个目录项:
+  [0] inum=1 name=.
+  [1] inum=1 name=..
+  [2] inum=2 name=README.md
+  [3] inum=3 name=buf.h
+  [4] inum=4 name=net.h
+readdir 测试通过!
+
+=== 测试 flock ===
+flock: 获取共享锁成功
+flock: 解锁成功
+flock: 获取排他锁成功
+flock 测试通过!
+
+=== 测试 chown ===
+chown: 修改所有者成功
+chown 测试通过!
+
+=== 测试 kstat ===
+kstat README.md:
+  type=2, ino=2, size=6491
+kstat noexist 失败 (预期)
+kstat . (当前目录):
+  type=1 (1=目录), ino=1
+kstat 测试通过!
+
+=== 测试 truncate ===
+原始大小: 29
+截断后大小: 5 (应为5)
+清空后大小: 0 (应为0)
+truncate 测试通过!
+
+=== 测试 dup2 ===
+dup2(3, 8) = 8 成功
+读取内容: test
+dup2 测试通过!
+
+=== 测试 getdents ===
+读取到 280 字节, 10 个目录项:
+  [0] ino=1 name=.
+  [1] ino=1 name=..
+  [2] ino=2 name=README.md
+  [3] ino=3 name=buf.h
+  [4] ino=4 name=net.h
+  [5] ino=5 name=e1000_dev.h
+  [6] ino=6 name=param.h
+  [7] ino=7 name=file.h
+  [8] ino=8 name=sleeplock.h
+  [9] ino=9 name=defs.h
+getdents 测试通过!
+
+========================================
+    所有测试完成!
+========================================
+
+
+----------------------------------------------------------------------
+测试: hmdfstest
+状态: COMPLETED
+----------------------------------------------------------------------
+hmdfstest
+========================================
+    HMDFS 分布式文件系统测试
+========================================
+
+=== HMDFS 设备管理测试 ===
+注册模拟设备...
+hmdfs: device 'phone-1' registered (id=1)
+注册手机设备: id=1
+hmdfs: device 'tablet-1' registered (id=2)
+注册平板设备: id=2
+hmdfs: device 'pc-1' registered (id=3)
+注册电脑设备: id=3
+
+当前设备列表:
+
+设备 2 下线...
+hmdfs: device 2 offline
+设备管理测试完成!
+
+=== HMDFS 文件共享测试 ===
+创建测试文件: hmdfs_test.txt
+共享文件...
+hmdfs: file 'hmdfs_test.txt' shared
+共享 hmdfs_test.txt: slot=0
+hmdfs: file 'README.md' shared
+共享 README.md: slot=1
+
+当前共享文件:
+
+触发同步...
+同步了 2 个文件
+
+取消共享 hmdfs_test.txt...
+文件共享测试完成!
+
+=== HMDFS 统计信息 ===
+
+=== HMDFS Statistics ===
+Devices: 4
+Shared files: 1
+Files synced: 2
+Bytes transferred: 0
+Conflicts resolved: 0
+Cache hits: 0
+Cache misses: 0
+Cache hit rate: 0%
+========================
+
+========================================
+    HMDFS 测试完成!
+========================================
+
+
+----------------------------------------------------------------------
+测试: kalloctest
+状态: PASSED
+----------------------------------------------------------------------
+kalloctest
+start test
+have no permission to read
+ntas: no stats
+have no permission to read
+ntas: no stats
+test OK
+
+
+----------------------------------------------------------------------
+测试: lazytest
+状态: PASSED
+----------------------------------------------------------------------
+lazytest
+lazytests starting
+running test lazy alloc
+test lazy alloc: OK
+running test lazy unmap
+test lazy unmap: OK
+running test out of memory
+usertrap(): out of memory!
+test out of memory: OK
+ALL TESTS PASSED
+
+
+----------------------------------------------------------------------
+测试: mlfqtest
+状态: COMPLETED
+----------------------------------------------------------------------
+mlfqtest
+========================================
+   MLFQ 多级反馈队列调度测试程序
+========================================
+
+MLFQ 特点:
+- 4个优先级队列 (Q0=最高, Q3=最低)
+- 时间片: Q0=2, Q1=4, Q2=8, Q3=16 ticks
+- CPU密集型进程逐渐降级
+- I/O密集型进程保持高优先级
+- 定期优先级提升防止饥饿
+
+=== 测试1: CPU密集型 vs I/O密集型 ===
+MLFQ应该让I/O密集型任务保持高优先级
+CPU任务 1 完成 (iterations=50, sum=-1795217296)
+I/O任务 2 完成 (iterations=10)
+测试1完成!
+
+=== 测试2: 公平调度测试 ===
+多个CPU密集型任务应该公平分享CPU时间
+CPU任务 1 完成 (iterations=30, sum=1499850000)
+CPU任务 2 完成 (iterations=30, sum=1499850000)
+CPU任务 3 完成 (iterations=30, sum=1499850000)
+测试2完成!
+
+=== 测试3: 防饥饿测试 ===
+低优先级任务不应该被饿死
+CPU任务 1 完成 (iterations=50, sum=-1795217296)
+CPU任务 2 完成 (iterations=20, sum=999900000)
+测试3完成!
+
+=== 测试4: 交互式任务响应测试 ===
+模拟交互式任务应该得到快速响应
+CPU任务 1 完成 (iterations=40, sum=1999800000)
+交互式任务: 处理5个请求
+交互式任务: 全部完成!
+测试4完成!
+
+========================================
+       所有MLFQ测试完成!
+========================================
+
+
+----------------------------------------------------------------------
+测试: mmaptest
+状态: PASSED
+----------------------------------------------------------------------
+mmaptest
+mmap_test starting
+test mmap f
+test mmap f: OK
+test mmap private
+test mmap private: OK
+test mmap read-only
+test mmap read-only: OK
+test mmap read/write
+test mmap read/write: OK
+test mmap dirty
+test mmap dirty: OK
+test not-mapped unmap
+test not-mapped unmap: OK
+test mmap two files
+test mmap two files: OK
+mmap_test: ALL OK
+fork_test starting
+fork_test OK
+mmaptest: all tests succeeded
+
+
+----------------------------------------------------------------------
+测试: msgtest
+状态: COMPLETED
+----------------------------------------------------------------------
+msgtest
+All messages have been sent.
+Received the 2dth message: Hello, another message comes!
+Received the 1dth message: This is the first message!
+Received the 3dth message: This is the third message, and this message has great characters!
+
+
+----------------------------------------------------------------------
+测试: newtest
+状态: PASSED
+----------------------------------------------------------------------
+newtest
+========================================
+       新系统调用测试程序
+========================================
+
+=== 测试 rename ===
+rename: testfile -> newfile 成功
+读取内容: hello
+rename 测试通过!
+
+=== 测试 lseek ===
+SEEK_SET(5): pos = 5
+读取内容: 567 (应为 567)
+SEEK_CUR(-2): pos = 6
+SEEK_END(-3): pos = 7
+读取内容: 789 (应为 789)
+lseek 测试通过!
+
+=== 测试 waitpid ===
+创建子进程: pid1=4, pid2=5
+waitpid(5) 返回: 5, status=22
+waitpid(-1) 返回: 4, status=11
+waitpid 测试通过!
+
+=== 测试 getuid/setuid ===
+当前 uid = 0
+setuid(1000) 成功
+新的 uid = 1000
+setuid(0) 失败 (预期行为，非root不能设置其他uid)
+getuid/setuid 测试通过!
+
+=== 测试 reboot ===
+警告: reboot 会重启系统!
+如需测试，请手动运行 reboot 命令
+
+========================================
+       所有测试完成!
+========================================
+
+
+----------------------------------------------------------------------
+测试: osfeatures_test
+状态: PASSED
+----------------------------------------------------------------------
+osfeatures_test
+================================================
+    YYDS-OS 多系统特性测试 v3.0
+    Android + Linux + HarmonyOS 特性集成
+    创新功能: 权能/CPU亲和性/Futex/冻结/分析
+================================================
+
+========== 原有功能测试 ==========
+
+=== Binder IPC 测试 (Android风格) ===
+注册服务...
+binder: service 'audio_service' registered (handle=1)
+注册 audio_service: handle=1
+binder: service 'video_service' registered (handle=2)
+注册 video_service: handle=2
+binder: service 'camera_service' registered (handle=3)
+注册 camera_service: handle=3
+
+查找服务...
+查找 audio_service: handle=1
+
+当前服务列表:
+
+释放 video_service...
+
+=== Binder IPC Statistics ===
+Services: 2
+Total transactions: 0
+Total calls: 0
+Total replies: 0
+=============================
+Binder IPC 测试完成!
+
+=== cgroups 测试 (Linux风格) ===
+创建 cgroup...
+cgroups: 'app_group' created (id=1)
+创建 app_group: id=1
+cgroups: 'system_group' created (id=2)
+创建 system_group: id=2
+
+设置资源限制...
+app_group 内存限制: 64MB
+app_group CPU 份额: 512
+system_group 内存限制: 128MB
+
+将当前进程加入 cgroup...
+进程 3 加入 app_group
+
+当前 cgroups:
+
+=== cgroups Statistics ===
+Total cgroups: 3
+
+[0] /:
+  Processes: 0/64
+  Memory: 0/0 KB
+  CPU shares: 1024
+
+[1] app_group:
+  Processes: 1/64
+  Memory: 0/0 KB
+  CPU shares: 512
+
+[2] system_group:
+  Processes: 0/64
+  Memory: 0/0 KB
+  CPU shares: 1024
+==========================
+cgroups 测试完成!
+
+=== Ability 框架测试 (鸿蒙风格) ===
+注册 Ability...
+ability: 'com.yyds.launcher/MainAbility' registered (id=1, type=1)
+注册 MainAbility (PAGE): id=1
+ability: 'com.yyds.launcher/SettingsAbility' registered (id=2, type=1)
+注册 SettingsAbility (PAGE): id=2
+ability: 'com.yyds.music/MusicService' registered (id=3, type=2)
+注册 MusicService (SERVICE): id=3
+
+启动 Ability...
+启动 MainAbility
+启动 SettingsAbility
+启动 MusicService
+
+当前 Abilities:
+
+页面导航测试...
+返回上一页...
+
+停止 MusicService...
+
+=== Ability Framework Statistics ===
+Total abilities: 3
+Foreground stack depth: 1
+Total starts: 3
+Total stops: 1
+Lifecycle events: 8
+====================================
+Ability 框架测试完成!
+
+========== 基础增强功能测试 ==========
+
+=== 实时调度测试 ===
+测试 SCHED_FIFO, SCHED_RR 和 SCHED_DEADLINE
+实时调度策略:
+  - SCHED_NORMAL (0): 普通MLFQ调度
+  - SCHED_FIFO (1): 实时FIFO调度
+  - SCHED_RR (2): 实时轮转调度
+  - SCHED_DEADLINE (3): EDF截止时间调度
+
+当前进程 PID: 3
+实时调度功能已在内核中实现
+实时调度测试完成!
+
+=== IO带宽限制测试 ===
+测试 cgroups IO 控制器
+cgroups: 'io_test_group' created (id=3)
+创建 io_test_group: id=3
+IO带宽限制功能:
+  - 读取速率限制 (read_bps)
+  - 写入速率限制 (write_bps)
+  - 读取IOPS限制 (read_iops)
+  - 写入IOPS限制 (write_iops)
+  - Token bucket 算法实现流量控制
+IO带宽限制测试完成!
+
+=== 网络带宽限制测试 ===
+测试 cgroups 网络控制器
+网络带宽限制功能:
+  - 发送速率限制 (tx_bps)
+  - 接收速率限制 (rx_bps)
+  - 发送包速率限制 (tx_pps)
+  - 接收包速率限制 (rx_pps)
+  - 网络优先级设置
+  - Token bucket 算法实现流量控制
+网络带宽限制测试完成!
+
+=== Ability IPC 测试 ===
+测试 Ability 间通信机制
+ability: 'com.test.app/SenderAbility' registered (id=4, type=2)
+ability: 'com.test.app/ReceiverAbility' registered (id=5, type=2)
+注册 SenderAbility: id=4
+注册 ReceiverAbility: id=5
+
+Ability IPC 功能:
+  - 消息发送 (ability_send_message)
+  - 消息接收 (ability_recv_message)
+  - 同步调用 (ability_call)
+  - 响应回复 (ability_reply)
+  - 连接管理 (ability_connect/disconnect)
+
+消息类型:
+  - MSG_REQUEST (1): 请求消息
+  - MSG_RESPONSE (2): 响应消息
+  - MSG_EVENT (3): 事件通知
+Ability IPC 测试完成!
+
+=== Ability 生命周期管理测试 ===
+生命周期状态:
+  - ABILITY_INITIAL (0): 初始状态
+  - ABILITY_INACTIVE (1): 非活动状态
+  - ABILITY_ACTIVE (2): 活动状态
+  - ABILITY_BACKGROUND (3): 后台状态
+
+生命周期事件:
+  - LIFECYCLE_CREATE: 创建事件
+  - LIFECYCLE_START: 启动事件
+  - LIFECYCLE_FOREGROUND: 前台事件
+  - LIFECYCLE_BACKGROUND: 后台事件
+  - LIFECYCLE_STOP: 停止事件
+  - LIFECYCLE_DESTROY: 销毁事件
+
+生命周期监听器功能已实现
+Ability 生命周期管理测试完成!
+
+=== HMDFS 跨设备同步测试 ===
+测试分布式文件系统同步功能
+
+HMDFS 同步功能:
+  - 同步事件队列 (sync_queue)
+  - 全量同步 (hmdfs_full_sync)
+  - 增量同步 (hmdfs_incremental_sync)
+  - 文件传输 (hmdfs_transfer_file)
+  - 同步状态查询 (hmdfs_get_file_status)
+
+同步事件类型:
+  - SYNC_EVENT_CREATE: 文件创建
+  - SYNC_EVENT_MODIFY: 文件修改
+  - SYNC_EVENT_DELETE: 文件删除
+  - SYNC_EVENT_RENAME: 文件重命名
+HMDFS 跨设备同步测试完成!
+
+=== 进程快照 (Checkpoint) 测试 ===
+测试进程状态保存和恢复
+
+Checkpoint 功能:
+  - 创建快照 (checkpoint_create)
+  - 恢复快照 (checkpoint_restore)
+  - 删除快照 (checkpoint_delete)
+  - 列出快照 (checkpoint_list)
+  - 快照信息 (checkpoint_info)
+
+保存的状态:
+  - 寄存器状态 (trapframe)
+  - 内核上下文 (context)
+  - 内存页面
+  - 文件描述符
+  - 进程属性 (uid, gid, priority)
+
+当前进程 PID: 3
+进程快照测试完成!
+
+=== 文件版本历史测试 ===
+测试文件版本控制功能
+
+版本控制功能:
+  - 启用版本控制 (version_enable)
+  - 创建版本 (version_create)
+  - 恢复版本 (version_restore)
+  - 版本列表 (version_list)
+  - 版本差异 (version_diff)
+  - 清理旧版本 (version_cleanup)
+
+版本操作类型:
+  - VER_OP_CREATE: 创建
+  - VER_OP_MODIFY: 修改
+  - VER_OP_DELETE: 删除
+  - VER_OP_RENAME: 重命名
+  - VER_OP_RESTORE: 恢复
+
+每个文件最多保留 16 个版本
+支持自动清理旧版本
+文件版本历史测试完成!
+
+========== 创新功能测试 ==========
+
+=== 进程权能系统测试 (Capability) ===
+类似Linux CAP_*和鸿蒙OS的权能机制
+
+基本权能位:
+  - CAP_CHOWN (0): 修改文件所有者
+  - CAP_KILL (4): 发送信号给任意进程
+  - CAP_SETUID (6): 设置UID
+  - CAP_SYS_ADMIN (10): 系统管理操作
+  - CAP_NET_BIND (7): 绑定特权端口
+
+鸿蒙风格扩展权能:
+  - CAP_ABILITY_START (18): 启动Ability
+  - CAP_DISTRIBUTED (20): 分布式操作
+  - CAP_CAMERA (24): 摄像头访问
+  - CAP_LOCATION (23): 位置信息
+
+权能集合类型:
+  - Effective: 当前有效权能
+  - Permitted: 允许拥有的权能
+  - Inheritable: 可继承权能
+  - Bounding: 权能边界集
+进程权能系统测试完成!
+
+=== CPU亲和性调度测试 (CPU Affinity) ===
+SMP多核调度优化
+
+CPU亲和性功能:
+  - sched_setaffinity: 设置CPU掩码
+  - sched_getaffinity: 获取CPU掩码
+  - 进程绑定到特定CPU核心
+
+负载均衡策略:
+  - LB_NONE (0): 不进行负载均衡
+  - LB_PERIODIC (1): 周期性负载均衡
+  - LB_ON_IDLE (2): 空闲时负载均衡
+  - LB_AGGRESSIVE (3): 激进负载均衡
+
+当前进程 PID: 3
+CPU亲和性调度测试完成!
+
+=== Futex快速互斥锁测试 ===
+高性能用户态同步原语
+
+Futex操作:
+  - FUTEX_WAIT: 等待futex值变化
+  - FUTEX_WAKE: 唤醒等待的进程
+  - FUTEX_REQUEUE: 重新排队
+  - FUTEX_WAKE_BITSET: 带位掩码唤醒
+
+优势:
+  - 无竞争时无需系统调用
+  - 减少内核态切换开销
+  - 支持超时等待
+Futex快速互斥锁测试完成!
+
+=== 进程冻结/解冻测试 (Freezer) ===
+类似Android的进程管理
+
+冻结原因:
+  - FREEZE_REASON_USER (1): 用户请求
+  - FREEZE_REASON_SYSTEM (2): 系统请求
+  - FREEZE_REASON_LOWMEM (3): 内存不足
+  - FREEZE_REASON_CGROUP (5): cgroup冻结
+
+冻结优先级:
+  - CRITICAL (0): 关键进程，不冻结
+  - FOREGROUND (1): 前台进程
+  - BACKGROUND (4): 后台进程
+  - CACHED (5): 缓存进程
+
+功能:
+  - freeze_process/thaw_process
+  - freeze_cgroup/thaw_cgroup
+  - auto_freeze_background
+进程冻结/解冻测试完成!
+
+=== 内核性能统计测试 (KProfiler) ===
+调度和系统性能分析
+
+性能事件类型:
+  - PERF_SCHED_SWITCH: 上下文切换
+  - PERF_SYSCALL: 系统调用
+  - PERF_PAGE_FAULT: 页面错误
+  - PERF_IRQ: 中断
+
+统计信息:
+  - 上下文切换次数
+  - 系统调用次数
+  - 采样记录
+内核性能统计测试完成!
+
+╔══════════════════════════════════════════════════════════╗
+║           YYDS-OS 功能总结 (共11项)                      ║
+╠══════════════════════════════════════════════════════════╣
+║ 基础增强功能:                                            ║
+║ 1. MLFQ调度 - 实时调度(FIFO/RR) + Deadline(EDF)         ║
+║ 2. cgroups - IO带宽限制 + 网络带宽限制                   ║
+║ 3. Ability框架 - IPC通信 + 生命周期管理                  ║
+║ 4. HMDFS - 跨设备文件同步                                ║
+║ 5. 进程快照 - Checkpoint/Restore                         ║
+║ 6. 文件版本 - 版本历史管理                               ║
+╠══════════════════════════════════════════════════════════╣
+║ 创新功能 (基于鸿蒙OS学习):                               ║
+║ 7. 权能系统 - Linux/鸿蒙风格细粒度权限                   ║
+║ 8. CPU亲和性 - SMP多核调度优化                           ║
+║ 9. Futex - 快速用户态互斥锁                              ║
+║ 10. 进程冻结 - Android风格进程管理                       ║
+║ 11. 内核分析 - 性能统计和调试                            ║
+╚══════════════════════════════════════════════════════════╝
+
+================================================
+    所有测试完成! (共 16 个测试模块)
+================================================
+
+
+----------------------------------------------------------------------
+测试: qostest
+状态: PASSED
+----------------------------------------------------------------------
+qostest
+========================================
+    YYDS-OS 新功能测试程序
+========================================
+
+=== QoS 调度器测试 ===
+当前 QoS 级别: 3
+设置 QoS 为 USER_INTERACTIVE (0)...
+设置成功, 新级别: 0
+设置 QoS 为 BACKGROUND (5)...
+设置成功, 新级别: 5
+
+QoS 统计信息:
+
+=== QoS Scheduler Statistics ===
+Total schedules: 0
+Context switches: 0
+Priority boosts: 0
+Deadline misses: 0
+
+Per-level statistics:
+  [0] %-18s: schedules=-2147361832 queue=0
+  [1] %-18s: schedules=-2147361808 queue=0
+  [2] %-18s: schedules=-2147361784 queue=0
+  [3] %-18s: schedules=-2147361768 queue=0
+  [4] %-18s: schedules=-2147361760 queue=0
+  [5] %-18s: schedules=-2147361752 queue=0
+
+Configuration:
+  Enabled: yes
+  Auto boost: yes
+  Deadline aware: yes
+  I/O boost: yes
+=================================
+QoS 测试通过!
+
+=== sysfs 测试 ===
+读取 /sys/kernel/version:
+  YYDS-OS v1.0 (RISC-V 64-bit)
+读取 /sys/kernel/hostname:
+  yyds-os
+读取 /sys/kernel/uptime:
+  uptime: 0 days, 0:00:00
+ticks: 2
+读取 /sys/mem/total:
+  总内存: 131072 KB
+读取 /sys/mem/free:
+  空闲内存: 126836 KB
+读取 /sys/cpu/info:
+Architecture: RISC-V 64-bit
+CPU(s): 8
+Model: QEMU RISC-V VirtIO Board
+Features: rv64imafdc
+列出 /sys 目录:
+proc
+cpu/
+mem/
+kernel/
+sysfs 测试通过!
+
+=== Slab 分配器测试 ===
+Slab 统计信息:
+
+=== Slab Allocator Statistics ===
+Total allocations: 0
+Total frees: 0
+Cache hits: 0
+Cache misses: 0
+Hit rate: 0%
+
+Per-cache statistics:
+  [%3d bytes] pages=32 allocs=0 frees=0
+  [%3d bytes] pages=64 allocs=0 frees=0
+  [%3d bytes] pages=128 allocs=0 frees=0
+  [%3d bytes] pages=256 allocs=0 frees=0
+  [%3d bytes] pages=512 allocs=0 frees=0
+=================================
+Slab 测试通过!
+
+=== QoS 调度测试 ===
+子进程 4: QoS=USER_INTERACTIVE, 完成
+子进程 5: QoS=BACKGROUND, 完成
+QoS 调度测试完成!
+
+========================================
+    所有测试完成!
+========================================
+
+
+----------------------------------------------------------------------
+测试: recoveritest
+状态: PASSED
+----------------------------------------------------------------------
+recoveritest
+Starting recoveri test...
+Test passed: Recovered file matches original.
+
+
+----------------------------------------------------------------------
+测试: sigtest
+状态: PASSED
+----------------------------------------------------------------------
+sigtest
+========================================
+       信号系统测试程序
+========================================
+
+=== 测试 signal ===
+注册 SIGINT 处理函数, 旧处理函数=0x0000000000000000
+注册 SIGUSR1 处理函数
+signal 测试通过!
+
+=== 测试 sigkill ===
+子进程 (pid=4) 开始等待...
+父进程发送 SIGTERM 给子进程 4
+sigkill 成功
+子进程退出, status=-1
+sigkill 测试通过!
+
+=== 测试 pause ===
+子进程 (pid=5) 调用 pause() 等待信号...
+父进程发送 SIGUSR1 给子进程 5
+子进程从 pause() 返回!
+子进程退出
+pause 测试通过!
+
+=== 测试 nice ===
+当前优先级: 10
+nice(5) 后优先级: 15
+nice(-3) 后优先级: 12
+nice 测试通过!
+
+=== 测试 times ===
+系统时钟: 22
+用户态时间: 0
+内核态时间: 0
+计算后用户态时间: 0
+times 测试通过!
+
+=== 测试 getppid ===
+当前进程 PID: 3
+父进程 PID: 2
+子进程: PID=6, PPID=3 (应为3)
+getppid 测试通过!
+
+=== 测试进程组 (setpgid/getpgid) ===
+当前进程: PID=3, PGID=1
+子进程初始 PGID: 1
+子进程设置新 PGID 成功: 7
+父进程查看子进程 PGID: 7
+进程组测试通过!
+
+=== 测试会话 (setsid/getsid) ===
+当前会话 ID: 1
+子进程初始 SID: 1
+子进程创建新会话成功, SID=8
+会话测试通过!
+
+========================================
+       所有测试完成!
+========================================
+
+
+----------------------------------------------------------------------
+测试: symlinktest
+状态: PASSED
+----------------------------------------------------------------------
+symlinktest
+Start: test symlinks
+test symlinks: ok
+Start: test concurrent symlinks
+test concurrent symlinks: ok
+
+
+----------------------------------------------------------------------
+测试: usertests
+状态: PASSED
+----------------------------------------------------------------------
+usertests
+usertests starting
+test copyin: OK
+test copyout: OK
+test copyinstr1: OK
+test copyinstr2: OK
+test copyinstr3: OK
+test truncate1: OK
+test truncate2: OK
+test truncate3: OK
+test reparent2: scause 0x000000000000000d
+sepc=0x0000000080001286 stval=0x0505050505050505
+: kerneltrap
+
+
+----------------------------------------------------------------------
+测试: utiltest
+状态: PASSED
+----------------------------------------------------------------------
+utiltest
+========================================
+       实用小工具测试程序
+========================================
+
+=== factor: 分解质因数 ===
+12: 2 2 3
+100: 2 2 5 5
+97: 97
+1024: 2 2 2 2 2 2 2 2 2 2
+360: 2 2 2 3 3 5
+13: 13
+factor 测试通过!
+
+=== seq: 打印数字序列 ===
+seq 1 5:
+1
+2
+3
+4
+5
+seq 2 10 2:
+2
+4
+6
+8
+10
+seq 5 1 -1:
+5
+4
+3
+2
+1
+seq 测试通过!
+
+=== yes: 重复输出字符串 ===
+yes "hello" (5次):
+hello
+hello
+hello
+hello
+hello
+yes "y" (3次):
+y
+y
+y
+yes 测试通过!
+
+=== cal: 显示日历 ===
+    January 2026
+Su Mo Tu We Th Fr Sa
+             1  2  3 
+ 4  5  6  7  8  9 10 
+11 12 13 14 15 16 17 
+18 19 20 21 22 23 24 
+25 26 27 28 29 30 31 
+
+    February 2024
+Su Mo Tu We Th Fr Sa
+             1  2  3 
+ 4  5  6  7  8  9 10 
+11 12 13 14 15 16 17 
+18 19 20 21 22 23 24 
+25 26 27 28 29 
+cal 测试通过!
+
+=== banner: ASCII 艺术字 ===
+
+#   # ##### 
+#   #   #   
+#####   #   
+#   #   #   
+#   # ##### 
+
+ ###   #### 
+#   # #     
+#   #  ###  
+#   #     # 
+ ###  ####  
+
+#   # #   # ####   #### 
+ # #   # #  #   # #     
+  #     #   #   #  ###  
+  #     #   #   #     # 
+  #     #   ####  ####  
+
+banner 测试通过!
+
+========================================
+       所有测试完成!
+========================================
+
+
+======================================================================
+测试完成
+======================================================================

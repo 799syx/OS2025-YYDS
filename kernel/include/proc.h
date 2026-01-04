@@ -163,6 +163,37 @@ struct proc
   uint32 pending_signals;      // 待处理信号位图
   void (*signal_handlers[32])(); // 信号处理函数数组
   int paused;                  // 是否在等待信号 (pause)
+  
+  // 实时调度和Deadline调度增强
+  int sched_policy;            // 调度策略: 0=NORMAL, 1=FIFO, 2=RR, 3=DEADLINE
+  int rt_priority;             // 实时优先级 (0-99, 越高越优先)
+  uint64 deadline;             // 截止时间 (ticks)
+  uint64 period;               // 周期 (ticks)
+  uint64 runtime;              // 运行时间预算 (ticks)
+  uint64 runtime_remaining;    // 剩余运行时间
+  
+  // 进程快照 (checkpoint/restore)
+  int checkpointed;            // 是否已创建快照
+  uint64 checkpoint_id;        // 快照ID
+  
+  // 创新功能: 权能系统 (Capability)
+  uint32 caps_effective;       // 有效权能集
+  uint32 caps_permitted;       // 许可权能集
+  uint32 caps_inheritable;     // 可继承权能集
+  uint32 caps_bounding;        // 边界权能集
+  
+  // 创新功能: CPU亲和性 (CPU Affinity)
+  uint32 cpu_affinity;         // CPU亲和性掩码
+  int preferred_cpu;           // 首选CPU
+  int last_cpu;                // 上次运行的CPU
+  
+  // 创新功能: 进程冻结 (Freezer)
+  int frozen;                  // 是否被冻结
+  int freeze_reason;           // 冻结原因
+  int freeze_prio;             // 冻结优先级
+  
+  // 创新功能: cgroup关联
+  int cgroup_id;               // 所属cgroup ID
 };
 
 extern struct proc proc[NPROC]; // 声明进程表（全局）

@@ -43,15 +43,42 @@ struct memory_controller {
     int oom_kill_count;     // OOM 杀死次数
 };
 
-// I/O 控制器
+// I/O 控制器 (增强版)
 struct io_controller {
     int enabled;
-    uint64 read_bps_limit;  // 读取速率限制
-    uint64 write_bps_limit; // 写入速率限制
+    uint64 read_bps_limit;  // 读取速率限制 (bytes/sec)
+    uint64 write_bps_limit; // 写入速率限制 (bytes/sec)
     uint64 read_iops_limit; // 读取 IOPS 限制
     uint64 write_iops_limit;// 写入 IOPS 限制
     uint64 bytes_read;      // 累计读取字节
     uint64 bytes_written;   // 累计写入字节
+    uint64 read_ops;        // 累计读取操作数
+    uint64 write_ops;       // 累计写入操作数
+    uint64 last_read_time;  // 上次读取时间
+    uint64 last_write_time; // 上次写入时间
+    uint64 read_tokens;     // 读取令牌桶 (token bucket)
+    uint64 write_tokens;    // 写入令牌桶
+    int io_weight;          // I/O 权重 (100-1000)
+    int throttled;          // 是否被限流
+};
+
+// 网络带宽控制器 (新增)
+struct net_controller {
+    int enabled;
+    uint64 tx_bps_limit;    // 发送速率限制 (bytes/sec)
+    uint64 rx_bps_limit;    // 接收速率限制 (bytes/sec)
+    uint64 tx_pps_limit;    // 发送包速率限制 (packets/sec)
+    uint64 rx_pps_limit;    // 接收包速率限制
+    uint64 bytes_sent;      // 累计发送字节
+    uint64 bytes_received;  // 累计接收字节
+    uint64 packets_sent;    // 累计发送包数
+    uint64 packets_received;// 累计接收包数
+    uint64 tx_tokens;       // 发送令牌桶
+    uint64 rx_tokens;       // 接收令牌桶
+    uint64 last_tx_time;    // 上次发送时间
+    uint64 last_rx_time;    // 上次接收时间
+    int net_priority;       // 网络优先级 (0-7)
+    int throttled;          // 是否被限流
 };
 
 // 进程数控制器
@@ -61,7 +88,7 @@ struct pids_controller {
     int pids_current;       // 当前进程数
 };
 
-// cgroup 结构
+// cgroup 结构 (增强版)
 struct cgroup {
     int used;
     char name[CGROUP_NAME_LEN];
@@ -73,6 +100,7 @@ struct cgroup {
     struct cpu_controller cpu;
     struct memory_controller memory;
     struct io_controller io;
+    struct net_controller net;  // 新增网络控制器
     struct pids_controller pids;
     
     // 成员进程
@@ -81,6 +109,8 @@ struct cgroup {
     
     // 统计
     uint64 created_time;
+    uint64 io_throttle_count;   // IO限流次数
+    uint64 net_throttle_count;  // 网络限流次数
 };
 
 // ============ cgroups 全局状态 ============
@@ -479,6 +509,323 @@ cgroups_print_stats(void)
         }
     }
     printf("==========================\n");
+    
+    release(&cgroups.lock);
+}
+
+// ============ IO 带宽限制 (新增) ============
+
+// 设置 IO 带宽限制
+int
+cgroup_set_io_limit(int cgroup_id, uint64 read_bps, uint64 write_bps, int weight)
+{
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        if (cgroups.groups[i].used && cgroups.groups[i].id == cgroup_id) {
+            struct io_controller *io = &cgroups.groups[i].io;
+            if (read_bps > 0) io->read_bps_limit = read_bps;
+            if (write_bps > 0) io->write_bps_limit = write_bps;
+            if (weight >= 100 && weight <= 1000) io->io_weight = weight;
+            release(&cgroups.lock);
+            return 0;
+        }
+    }
+    
+    release(&cgroups.lock);
+    return -1;
+}
+
+// 设置 IO IOPS 限制
+int
+cgroup_set_io_iops(int cgroup_id, uint64 read_iops, uint64 write_iops)
+{
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        if (cgroups.groups[i].used && cgroups.groups[i].id == cgroup_id) {
+            struct io_controller *io = &cgroups.groups[i].io;
+            if (read_iops > 0) io->read_iops_limit = read_iops;
+            if (write_iops > 0) io->write_iops_limit = write_iops;
+            release(&cgroups.lock);
+            return 0;
+        }
+    }
+    
+    release(&cgroups.lock);
+    return -1;
+}
+
+// 检查 IO 读取是否允许 (令牌桶算法)
+int
+cgroup_check_io_read(int pid, uint64 bytes)
+{
+    extern uint ticks;
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        struct cgroup *cg = &cgroups.groups[i];
+        if (!cg->used) continue;
+        
+        for (int j = 0; j < cg->proc_count; j++) {
+            if (cg->procs[j] == pid) {
+                struct io_controller *io = &cg->io;
+                if (!io->enabled || io->read_bps_limit == 0) {
+                    release(&cgroups.lock);
+                    return 1;  // 无限制
+                }
+                
+                // 令牌桶算法：补充令牌
+                uint64 elapsed = ticks - io->last_read_time;
+                uint64 new_tokens = elapsed * io->read_bps_limit / 100;  // 假设100 ticks/sec
+                io->read_tokens += new_tokens;
+                if (io->read_tokens > io->read_bps_limit)
+                    io->read_tokens = io->read_bps_limit;
+                io->last_read_time = ticks;
+                
+                // 检查令牌是否足够
+                if (io->read_tokens >= bytes) {
+                    io->read_tokens -= bytes;
+                    io->bytes_read += bytes;
+                    io->read_ops++;
+                    release(&cgroups.lock);
+                    return 1;  // 允许
+                }
+                
+                io->throttled = 1;
+                cg->io_throttle_count++;
+                release(&cgroups.lock);
+                return 0;  // 限流
+            }
+        }
+    }
+    
+    release(&cgroups.lock);
+    return 1;
+}
+
+// 检查 IO 写入是否允许
+int
+cgroup_check_io_write(int pid, uint64 bytes)
+{
+    extern uint ticks;
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        struct cgroup *cg = &cgroups.groups[i];
+        if (!cg->used) continue;
+        
+        for (int j = 0; j < cg->proc_count; j++) {
+            if (cg->procs[j] == pid) {
+                struct io_controller *io = &cg->io;
+                if (!io->enabled || io->write_bps_limit == 0) {
+                    release(&cgroups.lock);
+                    return 1;
+                }
+                
+                uint64 elapsed = ticks - io->last_write_time;
+                uint64 new_tokens = elapsed * io->write_bps_limit / 100;
+                io->write_tokens += new_tokens;
+                if (io->write_tokens > io->write_bps_limit)
+                    io->write_tokens = io->write_bps_limit;
+                io->last_write_time = ticks;
+                
+                if (io->write_tokens >= bytes) {
+                    io->write_tokens -= bytes;
+                    io->bytes_written += bytes;
+                    io->write_ops++;
+                    release(&cgroups.lock);
+                    return 1;
+                }
+                
+                io->throttled = 1;
+                cg->io_throttle_count++;
+                release(&cgroups.lock);
+                return 0;
+            }
+        }
+    }
+    
+    release(&cgroups.lock);
+    return 1;
+}
+
+// ============ 网络带宽限制 (新增) ============
+
+// 设置网络带宽限制
+int
+cgroup_set_net_limit(int cgroup_id, uint64 tx_bps, uint64 rx_bps, int priority)
+{
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        if (cgroups.groups[i].used && cgroups.groups[i].id == cgroup_id) {
+            struct net_controller *net = &cgroups.groups[i].net;
+            net->enabled = 1;
+            if (tx_bps > 0) net->tx_bps_limit = tx_bps;
+            if (rx_bps > 0) net->rx_bps_limit = rx_bps;
+            if (priority >= 0 && priority <= 7) net->net_priority = priority;
+            release(&cgroups.lock);
+            return 0;
+        }
+    }
+    
+    release(&cgroups.lock);
+    return -1;
+}
+
+// 设置网络包速率限制
+int
+cgroup_set_net_pps(int cgroup_id, uint64 tx_pps, uint64 rx_pps)
+{
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        if (cgroups.groups[i].used && cgroups.groups[i].id == cgroup_id) {
+            struct net_controller *net = &cgroups.groups[i].net;
+            if (tx_pps > 0) net->tx_pps_limit = tx_pps;
+            if (rx_pps > 0) net->rx_pps_limit = rx_pps;
+            release(&cgroups.lock);
+            return 0;
+        }
+    }
+    
+    release(&cgroups.lock);
+    return -1;
+}
+
+// 检查网络发送是否允许
+int
+cgroup_check_net_tx(int pid, uint64 bytes)
+{
+    extern uint ticks;
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        struct cgroup *cg = &cgroups.groups[i];
+        if (!cg->used) continue;
+        
+        for (int j = 0; j < cg->proc_count; j++) {
+            if (cg->procs[j] == pid) {
+                struct net_controller *net = &cg->net;
+                if (!net->enabled || net->tx_bps_limit == 0) {
+                    release(&cgroups.lock);
+                    return 1;
+                }
+                
+                uint64 elapsed = ticks - net->last_tx_time;
+                uint64 new_tokens = elapsed * net->tx_bps_limit / 100;
+                net->tx_tokens += new_tokens;
+                if (net->tx_tokens > net->tx_bps_limit)
+                    net->tx_tokens = net->tx_bps_limit;
+                net->last_tx_time = ticks;
+                
+                if (net->tx_tokens >= bytes) {
+                    net->tx_tokens -= bytes;
+                    net->bytes_sent += bytes;
+                    net->packets_sent++;
+                    release(&cgroups.lock);
+                    return 1;
+                }
+                
+                net->throttled = 1;
+                cg->net_throttle_count++;
+                release(&cgroups.lock);
+                return 0;
+            }
+        }
+    }
+    
+    release(&cgroups.lock);
+    return 1;
+}
+
+// 检查网络接收是否允许
+int
+cgroup_check_net_rx(int pid, uint64 bytes)
+{
+    extern uint ticks;
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        struct cgroup *cg = &cgroups.groups[i];
+        if (!cg->used) continue;
+        
+        for (int j = 0; j < cg->proc_count; j++) {
+            if (cg->procs[j] == pid) {
+                struct net_controller *net = &cg->net;
+                if (!net->enabled || net->rx_bps_limit == 0) {
+                    release(&cgroups.lock);
+                    return 1;
+                }
+                
+                uint64 elapsed = ticks - net->last_rx_time;
+                uint64 new_tokens = elapsed * net->rx_bps_limit / 100;
+                net->rx_tokens += new_tokens;
+                if (net->rx_tokens > net->rx_bps_limit)
+                    net->rx_tokens = net->rx_bps_limit;
+                net->last_rx_time = ticks;
+                
+                if (net->rx_tokens >= bytes) {
+                    net->rx_tokens -= bytes;
+                    net->bytes_received += bytes;
+                    net->packets_received++;
+                    release(&cgroups.lock);
+                    return 1;
+                }
+                
+                net->throttled = 1;
+                cg->net_throttle_count++;
+                release(&cgroups.lock);
+                return 0;
+            }
+        }
+    }
+    
+    release(&cgroups.lock);
+    return 1;
+}
+
+// 获取 IO 统计信息
+void
+cgroup_get_io_stats(int cgroup_id, uint64 *read_bytes, uint64 *write_bytes,
+                    uint64 *read_ops, uint64 *write_ops)
+{
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        if (cgroups.groups[i].used && cgroups.groups[i].id == cgroup_id) {
+            struct io_controller *io = &cgroups.groups[i].io;
+            if (read_bytes) *read_bytes = io->bytes_read;
+            if (write_bytes) *write_bytes = io->bytes_written;
+            if (read_ops) *read_ops = io->read_ops;
+            if (write_ops) *write_ops = io->write_ops;
+            release(&cgroups.lock);
+            return;
+        }
+    }
+    
+    release(&cgroups.lock);
+}
+
+// 获取网络统计信息
+void
+cgroup_get_net_stats(int cgroup_id, uint64 *tx_bytes, uint64 *rx_bytes,
+                     uint64 *tx_packets, uint64 *rx_packets)
+{
+    acquire(&cgroups.lock);
+    
+    for (int i = 0; i < MAX_CGROUPS; i++) {
+        if (cgroups.groups[i].used && cgroups.groups[i].id == cgroup_id) {
+            struct net_controller *net = &cgroups.groups[i].net;
+            if (tx_bytes) *tx_bytes = net->bytes_sent;
+            if (rx_bytes) *rx_bytes = net->bytes_received;
+            if (tx_packets) *tx_packets = net->packets_sent;
+            if (rx_packets) *rx_packets = net->packets_received;
+            release(&cgroups.lock);
+            return;
+        }
+    }
     
     release(&cgroups.lock);
 }

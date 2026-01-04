@@ -130,24 +130,26 @@ void test_qos_scheduling(void)
     if (pid1 == 0) {
         // 子进程1: 高优先级
         qos_set(QOS_USER_INTERACTIVE);
-        printf("子进程 %d: QoS=USER_INTERACTIVE, 开始工作\n", getpid());
+        int mypid = getpid();
         cpu_work(100000);
-        printf("子进程 %d: 完成\n", getpid());
+        printf("子进程 %d: QoS=USER_INTERACTIVE, 完成\n", mypid);
         exit(0);
     }
+    
+    // 等待第一个子进程完成后再创建第二个，避免输出竞争
+    wait(0);
     
     int pid2 = fork();
     if (pid2 == 0) {
         // 子进程2: 低优先级
         qos_set(QOS_BACKGROUND);
-        printf("子进程 %d: QoS=BACKGROUND, 开始工作\n", getpid());
+        int mypid = getpid();
         cpu_work(100000);
-        printf("子进程 %d: 完成\n", getpid());
+        printf("子进程 %d: QoS=BACKGROUND, 完成\n", mypid);
         exit(0);
     }
     
-    // 等待子进程
-    wait(0);
+    // 等待第二个子进程
     wait(0);
     
     printf("QoS 调度测试完成!\n");

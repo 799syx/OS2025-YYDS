@@ -163,6 +163,38 @@ found:
   p->mlfq_ticks = 0;
   p->mlfq_allotment = 5;  // 初始时间配额
   p->total_ticks = 0;
+  
+  // 实时调度和Deadline调度初始化
+  p->sched_policy = 0;  // SCHED_NORMAL
+  p->rt_priority = 0;
+  p->deadline = 0;
+  p->period = 0;
+  p->runtime = 0;
+  p->runtime_remaining = 0;
+  
+  // 进程快照初始化
+  p->checkpointed = 0;
+  p->checkpoint_id = 0;
+  
+  // 创新功能: 权能系统初始化
+  p->caps_effective = 0;
+  p->caps_permitted = 0xFFFFFFFF;   // 默认允许所有权能
+  p->caps_inheritable = 0;
+  p->caps_bounding = 0xFFFFFFFF;
+  
+  // 创新功能: CPU亲和性初始化
+  p->cpu_affinity = 0xFF;           // 默认可在所有CPU运行
+  p->preferred_cpu = -1;
+  p->last_cpu = -1;
+  
+  // 创新功能: 进程冻结初始化
+  p->frozen = 0;
+  p->freeze_reason = 0;
+  p->freeze_prio = 4;               // 默认后台优先级
+  
+  // cgroup初始化
+  p->cgroup_id = 0;
+  
   for (int i = 0; i < 32; i++)
     p->signal_handlers[i] = 0;  // 默认信号处理函数
   // An empty user page table.
@@ -693,6 +725,17 @@ static int mlfq_allotment_init[MLFQ_LEVELS] = {5, 10, 20, 40};  // 第4级配额
 
 static int mlfq_boost_counter = 0;
 
+// ============ 调度策略常量 ============
+#define SCHED_NORMAL   0    // 普通调度 (MLFQ)
+#define SCHED_FIFO     1    // 实时FIFO调度
+#define SCHED_RR       2    // 实时轮转调度
+#define SCHED_DEADLINE 3    // Deadline调度 (EDF)
+
+// 实时调度统计
+static uint64 rt_schedules = 0;
+static uint64 deadline_misses = 0;
+static uint64 deadline_schedules = 0;
+
 // 优先级提升：将所有进程移到最高优先级队列
 void mlfq_priority_boost(void)
 {
@@ -708,12 +751,90 @@ void mlfq_priority_boost(void)
   }
 }
 
+// 查找最高优先级的实时进程
+static struct proc* find_rt_process(void)
+{
+  struct proc *p;
+  struct proc *best = 0;
+  int best_priority = -1;
+  
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state == RUNNABLE && 
+        (p->sched_policy == SCHED_FIFO || p->sched_policy == SCHED_RR)) {
+      if (p->rt_priority > best_priority) {
+        if (best) release(&best->lock);
+        best = p;
+        best_priority = p->rt_priority;
+      } else {
+        release(&p->lock);
+      }
+    } else {
+      release(&p->lock);
+    }
+  }
+  
+  if (best) release(&best->lock);
+  return best;
+}
+
+// 查找最早截止时间的Deadline进程 (EDF算法)
+static struct proc* find_deadline_process(void)
+{
+  struct proc *p;
+  struct proc *best = 0;
+  uint64 earliest_deadline = 0xFFFFFFFFFFFFFFFF;
+  
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state == RUNNABLE && p->sched_policy == SCHED_DEADLINE) {
+      // 检查是否还有运行时间预算
+      if (p->runtime_remaining > 0 && p->deadline < earliest_deadline) {
+        if (best) release(&best->lock);
+        best = p;
+        earliest_deadline = p->deadline;
+      } else {
+        release(&p->lock);
+      }
+    } else {
+      release(&p->lock);
+    }
+  }
+  
+  if (best) release(&best->lock);
+  return best;
+}
+
+// 检查并更新Deadline进程的周期
+static void update_deadline_periods(void)
+{
+  struct proc *p;
+  extern uint ticks;
+  
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state != UNUSED && p->sched_policy == SCHED_DEADLINE) {
+      // 检查是否错过截止时间
+      if (ticks > p->deadline && p->runtime_remaining > 0) {
+        deadline_misses++;
+      }
+      // 如果当前周期结束，开始新周期
+      if (ticks >= p->deadline) {
+        p->deadline = ticks + p->period;
+        p->runtime_remaining = p->runtime;
+      }
+    }
+    release(&p->lock);
+  }
+}
+
 void scheduler(void)
 {
   struct proc *p;
   struct proc *selected = 0;
   struct cpu *c = mycpu();
   int level;
+  extern uint ticks;
 
   c->proc = 0;
 
@@ -728,14 +849,34 @@ void scheduler(void)
       mlfq_priority_boost();
       mlfq_boost_counter = 0;
     }
+    
+    // 更新Deadline进程的周期
+    update_deadline_periods();
 
-    // 从最高优先级队列开始查找可运行进程
+    // 优先级顺序: Deadline > 实时 > 普通(MLFQ)
+    
+    // 1. 首先检查Deadline进程 (EDF算法)
+    selected = find_deadline_process();
+    if (selected) {
+      deadline_schedules++;
+      goto run_process;
+    }
+    
+    // 2. 然后检查实时进程
+    selected = find_rt_process();
+    if (selected) {
+      rt_schedules++;
+      goto run_process;
+    }
+
+    // 3. 最后使用MLFQ调度普通进程
     for (level = 0; level < MLFQ_LEVELS && selected == 0; level++)
     {
       for (p = proc; p < &proc[NPROC]; p++)
       {
         acquire(&p->lock);
-        if (p->state == RUNNABLE && p->mlfq_level == level)
+        if (p->state == RUNNABLE && p->mlfq_level == level && 
+            p->sched_policy == SCHED_NORMAL)
         {
           selected = p;
           release(&p->lock);
@@ -753,6 +894,7 @@ void scheduler(void)
       continue;
     }
 
+run_process:
     // 调度选中的进程
     acquire(&selected->lock);
     if (selected->state == RUNNABLE)
@@ -763,22 +905,87 @@ void scheduler(void)
       swtch(&c->context, &selected->context);
       c->proc = 0;
       
-      // 进程返回后，更新MLFQ状态
+      // 进程返回后，更新调度状态
       if (selected->state == RUNNABLE) {
-        // 进程用完时间片被抢占
-        selected->mlfq_ticks++;
         selected->total_ticks++;
-        selected->mlfq_allotment--;
         
-        // 检查是否需要降级
-        if (selected->mlfq_allotment <= 0 && selected->mlfq_level < MLFQ_LEVELS - 1) {
-          selected->mlfq_level++;
-          selected->mlfq_allotment = mlfq_allotment_init[selected->mlfq_level];
+        // 根据调度策略更新
+        if (selected->sched_policy == SCHED_DEADLINE) {
+          // Deadline进程消耗运行时间
+          if (selected->runtime_remaining > 0)
+            selected->runtime_remaining--;
+        } else if (selected->sched_policy == SCHED_NORMAL) {
+          // MLFQ进程更新
+          selected->mlfq_ticks++;
+          selected->mlfq_allotment--;
+          
+          // 检查是否需要降级
+          if (selected->mlfq_allotment <= 0 && selected->mlfq_level < MLFQ_LEVELS - 1) {
+            selected->mlfq_level++;
+            selected->mlfq_allotment = mlfq_allotment_init[selected->mlfq_level];
+          }
         }
+        // SCHED_FIFO不需要额外处理，SCHED_RR在时间片用完后轮转
       }
     }
     release(&selected->lock);
   }
+}
+
+// 设置进程调度策略
+int sched_setscheduler(int pid, int policy, int priority)
+{
+  struct proc *p;
+  
+  if (policy < 0 || policy > 3) return -1;
+  if ((policy == SCHED_FIFO || policy == SCHED_RR) && (priority < 0 || priority > 99))
+    return -1;
+  
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->pid == pid) {
+      p->sched_policy = policy;
+      if (policy == SCHED_FIFO || policy == SCHED_RR) {
+        p->rt_priority = priority;
+      }
+      release(&p->lock);
+      return 0;
+    }
+    release(&p->lock);
+  }
+  return -1;
+}
+
+// 设置Deadline调度参数
+int sched_setdeadline(int pid, uint64 runtime, uint64 deadline, uint64 period)
+{
+  struct proc *p;
+  extern uint ticks;
+  
+  if (runtime == 0 || period == 0 || runtime > period) return -1;
+  
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->pid == pid) {
+      p->sched_policy = SCHED_DEADLINE;
+      p->runtime = runtime;
+      p->runtime_remaining = runtime;
+      p->period = period;
+      p->deadline = ticks + deadline;
+      release(&p->lock);
+      return 0;
+    }
+    release(&p->lock);
+  }
+  return -1;
+}
+
+// 获取调度统计信息
+void sched_get_stats(uint64 *rt_sched, uint64 *dl_sched, uint64 *dl_miss)
+{
+  if (rt_sched) *rt_sched = rt_schedules;
+  if (dl_sched) *dl_sched = deadline_schedules;
+  if (dl_miss) *dl_miss = deadline_misses;
 }
 
 // Switch to scheduler.  Must hold only p->lock
