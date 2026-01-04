@@ -1,38 +1,37 @@
 ======================================================================
 xv6 测试结果汇总
-测试时间: 2026-01-04 12:04:02.965574
+测试时间: 2026-01-04 14:48:02.478594
 ======================================================================
 
 测试汇总:
 ----------------------------------------
-通过: 17
+通过: 12
 失败: 0
-其他: 5
-总计: 22
+其他: 9
+总计: 21
 
 各测试状态:
 ----------------------------------------
   alarmtest            : COMPLETED
   bcachetest           : PASSED
-  bigfiletest          : TIMEOUT
   chmodtest            : PASSED
   cowtest              : PASSED
   embassy_test         : PASSED
   forktest             : PASSED
-  fstest               : PASSED
+  fstest               : PANIC
   hmdfstest            : COMPLETED
   kalloctest           : PASSED
   lazytest             : PASSED
   mlfqtest             : COMPLETED
-  mmaptest             : PASSED
+  mmaptest             : PANIC
   msgtest              : COMPLETED
-  newtest              : PASSED
+  newtest              : PANIC
   osfeatures_test      : PASSED
   qostest              : PASSED
-  recoveritest         : PASSED
+  recoveritest         : PANIC
   sigtest              : PASSED
   symlinktest          : PASSED
-  usertests            : PASSED
+  usertests            : PANIC
   utiltest             : PASSED
 
 ======================================================================
@@ -45,22 +44,22 @@ xv6 测试结果汇总
 ----------------------------------------------------------------------
 alarmtest
 test0 start
-............................................alarm!
+...........................................................................alarm!
 test0 passed
 test1 start
 ......alarm!
-.......alarm!
+.....alarm!
 ......alarm!
 .....alarm!
-.......alarm!
-......alarm!
-......alarm!
 ......alarm!
 .....alarm!
+......alarm!
+.....alarm!
+......alarm!
 .......alarm!
-test1 passed
+.test1 passed
 test2 start
-.................................................................alarm!
+..............................................................alarm!
 test2 passed
 
 
@@ -77,15 +76,8 @@ have no permission to read
 ntas: no stats
 test0: OK
 start test1
-test1 OK
+: ialloc: no inodes
 
-
-----------------------------------------------------------------------
-测试: bigfiletest
-状态: TIMEOUT
-----------------------------------------------------------------------
-bigfiletest
-................................................................................................................................................................................................................................................................................
 
 ----------------------------------------------------------------------
 测试: chmodtest
@@ -95,14 +87,14 @@ chmodtest
 Created file /test/a
 权限为可读可写:
 write "hellow" to /test/a successed
-hellow
-read from /test/a successed
+have no permission to read
+read from /test/a failed
 
 
 修改权限为只读:
 have no permission to write
 write "hellow1" to /test/a failed
-hellow
+hellow2
 read from /test/a successed
 
 
@@ -284,7 +276,7 @@ fork test OK
 
 ----------------------------------------------------------------------
 测试: fstest
-状态: PASSED
+状态: PANIC
 ----------------------------------------------------------------------
 fstest
 ========================================
@@ -311,51 +303,7 @@ umask 测试通过!
 readdir 测试通过!
 
 === 测试 flock ===
-flock: 获取共享锁成功
-flock: 解锁成功
-flock: 获取排他锁成功
-flock 测试通过!
-
-=== 测试 chown ===
-chown: 修改所有者成功
-chown 测试通过!
-
-=== 测试 kstat ===
-kstat README.md:
-  type=2, ino=2, size=6491
-kstat noexist 失败 (预期)
-kstat . (当前目录):
-  type=1 (1=目录), ino=1
-kstat 测试通过!
-
-=== 测试 truncate ===
-原始大小: 29
-截断后大小: 5 (应为5)
-清空后大小: 0 (应为0)
-truncate 测试通过!
-
-=== 测试 dup2 ===
-dup2(3, 8) = 8 成功
-读取内容: test
-dup2 测试通过!
-
-=== 测试 getdents ===
-读取到 280 字节, 10 个目录项:
-  [0] ino=1 name=.
-  [1] ino=1 name=..
-  [2] ino=2 name=README.md
-  [3] ino=3 name=buf.h
-  [4] ino=4 name=net.h
-  [5] ino=5 name=e1000_dev.h
-  [6] ino=6 name=param.h
-  [7] ino=7 name=file.h
-  [8] ino=8 name=sleeplock.h
-  [9] ino=9 name=defs.h
-getdents 测试通过!
-
-========================================
-    所有测试完成!
-========================================
+: ialloc: no inodes
 
 
 ----------------------------------------------------------------------
@@ -494,28 +442,11 @@ CPU任务 1 完成 (iterations=40, sum=1999800000)
 
 ----------------------------------------------------------------------
 测试: mmaptest
-状态: PASSED
+状态: PANIC
 ----------------------------------------------------------------------
 mmaptest
 mmap_test starting
-test mmap f
-test mmap f: OK
-test mmap private
-test mmap private: OK
-test mmap read-only
-test mmap read-only: OK
-test mmap read/write
-test mmap read/write: OK
-test mmap dirty
-test mmap dirty: OK
-test not-mapped unmap
-test not-mapped unmap: OK
-test mmap two files
-test mmap two files: OK
-mmap_test: ALL OK
-fork_test starting
-fork_test OK
-mmaptest: all tests succeeded
+: ialloc: no inodes
 
 
 ----------------------------------------------------------------------
@@ -531,7 +462,7 @@ Received the 3dth message: This is the third message, and this message has great
 
 ----------------------------------------------------------------------
 测试: newtest
-状态: PASSED
+状态: PANIC
 ----------------------------------------------------------------------
 newtest
 ========================================
@@ -539,38 +470,7 @@ newtest
 ========================================
 
 === 测试 rename ===
-rename: testfile -> newfile 成功
-读取内容: hello
-rename 测试通过!
-
-=== 测试 lseek ===
-SEEK_SET(5): pos = 5
-读取内容: 567 (应为 567)
-SEEK_CUR(-2): pos = 6
-SEEK_END(-3): pos = 7
-读取内容: 789 (应为 789)
-lseek 测试通过!
-
-=== 测试 waitpid ===
-创建子进程: pid1=4, pid2=5
-waitpid(5) 返回: 5, status=22
-waitpid(-1) 返回: 4, status=11
-waitpid 测试通过!
-
-=== 测试 getuid/setuid ===
-当前 uid = 0
-setuid(1000) 成功
-新的 uid = 1000
-setuid(0) 失败 (预期行为，非root不能设置其他uid)
-getuid/setuid 测试通过!
-
-=== 测试 reboot ===
-警告: reboot 会重启系统!
-如需测试，请手动运行 reboot 命令
-
-========================================
-       所有测试完成!
-========================================
+: ialloc: no inodes
 
 
 ----------------------------------------------------------------------
@@ -1023,11 +923,11 @@ QoS 调度测试完成!
 
 ----------------------------------------------------------------------
 测试: recoveritest
-状态: PASSED
+状态: PANIC
 ----------------------------------------------------------------------
 recoveritest
 Starting recoveri test...
-Test passed: Recovered file matches original.
+: ialloc: no inodes
 
 
 ----------------------------------------------------------------------
@@ -1103,26 +1003,16 @@ symlinktest
 Start: test symlinks
 test symlinks: ok
 Start: test concurrent symlinks
-test concurrent symlinks: ok
+: ialloc: no inodes
 
 
 ----------------------------------------------------------------------
 测试: usertests
-状态: PASSED
+状态: PANIC
 ----------------------------------------------------------------------
 usertests
 usertests starting
-test copyin: OK
-test copyout: OK
-test copyinstr1: OK
-test copyinstr2: OK
-test copyinstr3: OK
-test truncate1: OK
-test truncate2: OK
-test truncate3: OK
-test reparent2: scause 0x000000000000000d
-sepc=0x0000000080001286 stval=0x0505050505050505
-: kerneltrap
+test copyin: : ialloc: no inodes
 
 
 ----------------------------------------------------------------------

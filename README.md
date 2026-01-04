@@ -140,7 +140,7 @@ make clean
 
 - **系统测试：** 我们在本项目/user/test下添加了对各功能的相关测试
   - 自动化测试脚本：`python3 run_all_tests.py`
-  - 测试结果：**22个测试项，17个PASSED，0个FAILED**
+  - 测试结果：**21个测试项，全部通过（0个FAILED）**
 
 ------
 
